@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     @DebugLog
     private fun startCoroutine() {
-        asyncUi {
+        asyncUI {
             progress.visibility = View.VISIBLE
             text.text = "Loading..."
             try {
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
     @DebugLog
     private fun startCoroutineUsingMoreConvenientErrorHandling() {
-        asyncUi {
+        asyncUI {
             progress.visibility = View.VISIBLE
             text.text = "Loading..."
             // Release main thread and wait until text loaded

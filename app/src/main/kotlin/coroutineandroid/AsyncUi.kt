@@ -1,17 +1,33 @@
 package coroutineandroid
 
+import android.app.Activity
+import android.app.Fragment
 import android.os.Handler
 import android.os.Looper
 import kotlin.coroutines.Continuation
 
-fun asyncUi(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-    val controller = AsyncController()
+fun asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+    return asyncUI(c, AsyncController())
+}
+
+fun Activity.asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+    return asyncUI(c, AsyncController(activity = this))
+}
+
+fun Fragment.asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+    return asyncUI(c, AsyncController(fragment = this))
+}
+
+internal fun asyncUI(c: AsyncController.() -> Continuation<Unit>, controller: AsyncController): AsyncController {
     // TODO If not in UI thread - force run resume() in UI thread
     controller.c().resume(Unit)
     return controller
 }
 
-class AsyncController {
+typealias ErrorHandler = (Exception) -> Unit
+
+class AsyncController(val activity: Activity? = null,
+                      val fragment: Fragment? = null) {
     private var errorHandler: ErrorHandler? = null
     private val uiHandler = Handler(Looper.getMainLooper())
 
@@ -20,14 +36,17 @@ class AsyncController {
             try {
                 val value = f()
                 uiHandler.post {
-                    machine.resume(value)
+                    if (isAlive()) {
+                        machine.resume(value)
+                    }
                 }
             } catch (e: Exception) {
                 uiHandler.post {
-                    errorHandler?.invoke(e) ?: machine.resumeWithException(e)
+                    if (isAlive()) {
+                        errorHandler?.invoke(e) ?: machine.resumeWithException(e)
+                    }
                 }
             }
-
         }.start()
 
     }
@@ -35,6 +54,15 @@ class AsyncController {
     fun onError(errorHandler: ErrorHandler) {
         this.errorHandler = errorHandler
     }
-}
 
-typealias ErrorHandler = (Exception) -> Unit
+    private fun isAlive(): Boolean {
+        if (activity != null) {
+            return !activity.isFinishing
+        } else if (fragment != null) {
+            return fragment.context != null && !fragment.isDetached
+        } else {
+            return false
+        }
+    }
+
+}
