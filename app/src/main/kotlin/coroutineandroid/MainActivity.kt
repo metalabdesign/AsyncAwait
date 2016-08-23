@@ -62,8 +62,8 @@ class MainActivity : AppCompatActivity() {
         text.text = "Loading..."
 
         val loadedText = awaitWithProgress(::loadTextWithProgress) {
-            progressValues.progress = it.curr
-            progressValues.max = it.max
+            progressValues.progress = it
+            progressValues.max = 100
         }
 
         progressValues.visibility = View.INVISIBLE
@@ -83,10 +83,9 @@ private fun loadText(): String {
 }
 
 @DebugLog
-private fun loadTextWithProgress(p: Progress): String {
-    p.max = 10
+private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
     for (i in 1..10) {
-        p.curr = i
+        handleProgress(i * 100 / 10) // in %
         Thread.sleep(300)
     }
     //if (1 == 1) throw RuntimeException("You are in the wrong place")

@@ -30,6 +30,8 @@ internal fun asyncUI(c: AsyncController.() -> Continuation<Unit>, controller: As
 
 typealias ErrorHandler = (Exception) -> Unit
 
+typealias ProgressHandler<P> = (P) -> Unit
+
 class AsyncController(val activity: Activity? = null,
                       val fragment: Fragment? = null) {
     private var errorHandler: ErrorHandler? = null
@@ -39,42 +41,27 @@ class AsyncController(val activity: Activity? = null,
         executor.submit {
             try {
                 val value = f()
-                uiHandler.post {
-                    if (isAlive()) {
-                        machine.resume(value)
-                    }
+                runOnUiIfAlive {
+                    machine.resume(value)
                 }
             } catch (e: Exception) {
-                uiHandler.post {
-                    if (isAlive()) {
-                        errorHandler?.invoke(e) ?: machine.resumeWithException(e)
-                    }
+                runOnUiIfAlive {
+                    errorHandler?.invoke(e) ?: machine.resumeWithException(e)
                 }
             }
         }
     }
 
-    suspend fun <V> awaitWithProgress(f: (Progress) -> V, p: (Progress) -> Unit, machine: Continuation<V>) {
+    suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V, publishProgress: ProgressHandler<P>, machine: Continuation<V>) {
         executor.submit {
-            val progress = Progress(progressHandler = {
-                uiHandler.post {
-                    if (isAlive()) {
-                        p(it)
-                    }
-                }
-            })
             try {
-                val value = f(progress)
-                uiHandler.post {
-                    if (isAlive()) {
-                        machine.resume(value)
-                    }
+                val value = f { progressValue ->
+                    runOnUiIfAlive { publishProgress(progressValue) }
                 }
+                runOnUiIfAlive { machine.resume(value) }
             } catch (e: Exception) {
-                uiHandler.post {
-                    if (isAlive()) {
-                        errorHandler?.invoke(e) ?: machine.resumeWithException(e)
-                    }
+                runOnUiIfAlive {
+                    errorHandler?.invoke(e) ?: machine.resumeWithException(e)
                 }
             }
         }
@@ -94,13 +81,12 @@ class AsyncController(val activity: Activity? = null,
         }
     }
 
-}
-
-class Progress(val progressHandler: (Progress) -> Unit) {
-    @Volatile var curr: Int = 0
-        set(value) {
-            field = value
-            progressHandler(this)
+    private inline fun runOnUiIfAlive(crossinline block: () -> Unit) {
+        uiHandler.post {
+            if (isAlive()) {
+                block()
+            }
         }
-    @Volatile var max: Int = 0
+    }
+
 }
