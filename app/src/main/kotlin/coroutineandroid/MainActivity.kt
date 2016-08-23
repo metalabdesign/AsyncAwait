@@ -14,7 +14,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         button.setOnClickListener {
             //startCoroutine()
-            startCoroutineUsingMoreConvenientErrorHandling()
+            //startCoroutineUsingMoreConvenientErrorHandling()
+            startCoroutineWithProgress()
         }
     }
 
@@ -59,13 +60,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @DebugLog
+    private fun startCoroutineWithProgress() {
+        asyncUI {
+            button.isEnabled = false
+            progress.visibility = View.VISIBLE
+            progressValues.visibility = View.VISIBLE
+            text.text = "Loading..."
+
+            val loadedText = awaitWithProgress(::loadTextWithProgress) { curr, max ->
+                progressValues.progress = curr
+                progressValues.max = max
+            }
+
+            progressValues.visibility = View.INVISIBLE
+            text.text = loadedText + " (to be processed)"
+            text.text = await { processText(loadedText) }
+
+            progress.visibility = View.INVISIBLE
+            button.isEnabled = true
+        }
+    }
 }
+
 @DebugLog
 private fun loadText(): String {
     Thread.sleep(1000)
     //if (1 == 1) throw RuntimeException("You are in the wrong place")
     return "Loaded Text"
 }
+
+@DebugLog
+private fun loadTextWithProgress(p: (Int, Int) -> Unit): String {
+    for (i in 1..10) {
+        p(i, 10)
+        Thread.sleep(300)
+    }
+    //if (1 == 1) throw RuntimeException("You are in the wrong place")
+    return "Loaded Text"
+}
+
 @DebugLog
 private fun processText(input: String): String {
     Thread.sleep(2000)
