@@ -54,16 +54,17 @@ class AsyncController(val activity: Activity? = null,
         }
     }
 
-    suspend fun <V, P, M> awaitWithProgress(f: ((P, M) -> Unit) -> V, p: (P, M) -> Unit, machine: Continuation<V>) {
+    suspend fun <V> awaitWithProgress(f: (Progress) -> V, p: (Progress) -> Unit, machine: Continuation<V>) {
         executor.submit {
-            try {
-                val value = f { curr, max ->
-                    uiHandler.post {
-                        if (isAlive()) {
-                            p(curr, max)
-                        }
+            val progress = Progress(progressHandler = {
+                uiHandler.post {
+                    if (isAlive()) {
+                        p(it)
                     }
                 }
+            })
+            try {
+                val value = f(progress)
                 uiHandler.post {
                     if (isAlive()) {
                         machine.resume(value)
@@ -93,4 +94,13 @@ class AsyncController(val activity: Activity? = null,
         }
     }
 
+}
+
+class Progress(val progressHandler: (Progress) -> Unit) {
+    @Volatile var curr: Int = 0
+        set(value) {
+            field = value
+            progressHandler(this)
+        }
+    @Volatile var max: Int = 0
 }

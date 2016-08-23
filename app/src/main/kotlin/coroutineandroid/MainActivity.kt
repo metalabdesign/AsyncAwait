@@ -19,33 +19,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @DebugLog
-    private fun startCoroutine() {
-        asyncUI {
-            progress.visibility = View.VISIBLE
-            text.text = "Loading..."
-            try {
-                // Release main thread and wait until text loaded
-                // Progress animation shown during loading
-                val loadedText = await(::loadText)
-                // Loaded successfully, come back in UI thread and show result
-                text.text = loadedText + " (to be processed)"
-                // Oh ah we need to run more processing in background
-                text.text = await { processText(loadedText) }
-            } catch (e: Exception) {
-                // Exception could be thrown in UI or background thread
-                // but handled in UI thread
-                text.text = e.message
-            }
-            progress.visibility = View.INVISIBLE
-        }
-    }
-
-    @DebugLog
-    private fun startCoroutineUsingMoreConvenientErrorHandling() {
-        asyncUI {
-            progress.visibility = View.VISIBLE
-            text.text = "Loading..."
+    private fun startCoroutine() = asyncUI {
+        progress.visibility = View.VISIBLE
+        text.text = "Loading..."
+        try {
             // Release main thread and wait until text loaded
             // Progress animation shown during loading
             val loadedText = await(::loadText)
@@ -53,47 +30,63 @@ class MainActivity : AppCompatActivity() {
             text.text = loadedText + " (to be processed)"
             // Oh ah we need to run more processing in background
             text.text = await { processText(loadedText) }
-            progress.visibility = View.INVISIBLE
-        }.onError {
-            text.text = it.message
-            progress.visibility = View.INVISIBLE
+        } catch (e: Exception) {
+            // Exception could be thrown in UI or background thread
+            // but handled in UI thread
+            text.text = e.message
         }
+        progress.visibility = View.INVISIBLE
     }
 
-    @DebugLog
-    private fun startCoroutineWithProgress() {
-        asyncUI {
-            button.isEnabled = false
-            progress.visibility = View.VISIBLE
-            progressValues.visibility = View.VISIBLE
-            text.text = "Loading..."
+    private fun startCoroutineUsingMoreConvenientErrorHandling() = asyncUI {
+        progress.visibility = View.VISIBLE
+        text.text = "Loading..."
+        // Release main thread and wait until text loaded
+        // Progress animation shown during loading
+        val loadedText = await(::loadText)
+        // Loaded successfully, come back in UI thread and show result
+        text.text = loadedText + " (to be processed)"
+        // Oh ah we need to run more processing in background
+        text.text = await { processText(loadedText) }
+        progress.visibility = View.INVISIBLE
+    }.onError {
+        text.text = it.message
+        progress.visibility = View.INVISIBLE
+    }
 
-            val loadedText = awaitWithProgress(::loadTextWithProgress) { curr, max ->
-                progressValues.progress = curr
-                progressValues.max = max
-            }
 
-            progressValues.visibility = View.INVISIBLE
-            text.text = loadedText + " (to be processed)"
-            text.text = await { processText(loadedText) }
+    private fun startCoroutineWithProgress() = asyncUI {
+        button.isEnabled = false
+        progress.visibility = View.VISIBLE
+        progressValues.visibility = View.VISIBLE
+        text.text = "Loading..."
 
-            progress.visibility = View.INVISIBLE
-            button.isEnabled = true
+        val loadedText = awaitWithProgress(::loadTextWithProgress) {
+            progressValues.progress = it.curr
+            progressValues.max = it.max
         }
+
+        progressValues.visibility = View.INVISIBLE
+        text.text = loadedText + " (to be processed)"
+        text.text = await { processText(loadedText) }
+
+        progress.visibility = View.INVISIBLE
+        button.isEnabled = true
     }
 }
 
 @DebugLog
 private fun loadText(): String {
     Thread.sleep(1000)
-    //if (1 == 1) throw RuntimeException("You are in the wrong place")
+    if (1 == 1) throw RuntimeException("You are in the wrong place")
     return "Loaded Text"
 }
 
 @DebugLog
-private fun loadTextWithProgress(p: (Int, Int) -> Unit): String {
+private fun loadTextWithProgress(p: Progress): String {
+    p.max = 10
     for (i in 1..10) {
-        p(i, 10)
+        p.curr = i
         Thread.sleep(300)
     }
     //if (1 == 1) throw RuntimeException("You are in the wrong place")
