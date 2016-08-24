@@ -1,4 +1,4 @@
-package coroutineandroid
+package co.metalab.metaroutine
 
 import android.app.Activity
 import android.app.Fragment

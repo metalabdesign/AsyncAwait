@@ -1,9 +1,10 @@
-package coroutineandroid
+package co.metalab.sampleapp
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import com.example.coroutineandroid.R
+import co.metalab.metaroutine.asyncUI
+import co.metalab.metaroutine.ProgressHandler
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
 
