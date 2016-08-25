@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startCoroutine() = asyncUI {
-        pbStatus.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
         txtResult.text = "Loading..."
         try {
             // Release main thread and wait until text loaded
@@ -40,11 +40,11 @@ class MainActivity : AppCompatActivity() {
             // but handled in UI thread
             txtResult.text = e.message
         }
-        pbStatus.visibility = View.INVISIBLE
+        progressBar.visibility = View.INVISIBLE
     }
 
     private fun startCoroutineUsingMoreConvenientErrorHandling() = asyncUI {
-        pbStatus.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
         txtResult.text = "Loading..."
         // Release main thread and wait until text loaded
         // Progress animation shown during loading
@@ -53,29 +53,29 @@ class MainActivity : AppCompatActivity() {
         txtResult.text = loadedText + " (to be processed)"
         // Oh ah we need to run more processing in background
         txtResult.text = await { processText(loadedText) }
-        pbStatus.visibility = View.INVISIBLE
+        progressBar.visibility = View.INVISIBLE
     }.onError {
         txtResult.text = it.message
-        pbStatus.visibility = View.INVISIBLE
+        progressBar.visibility = View.INVISIBLE
     }
 
 
     private fun startCoroutineWithProgress() = asyncUI {
         btnStart.isEnabled = false
-        pbStatus.visibility = View.VISIBLE
-        pbValues.visibility = View.VISIBLE
+        progressBar.visibility = View.VISIBLE
+        progressBar.isIndeterminate = false
         txtResult.text = "Loading..."
 
         val loadedText = awaitWithProgress(::loadTextWithProgress) {
-            pbValues.progress = it
-            pbValues.max = 100
+            progressBar.progress = it
+            progressBar.max = 100
         }
 
-        pbValues.visibility = View.INVISIBLE
+        progressBar.isIndeterminate = true
         txtResult.text = loadedText + " (to be processed)"
         txtResult.text = await { processText(loadedText) }
 
-        pbStatus.visibility = View.INVISIBLE
+        progressBar.visibility = View.INVISIBLE
         btnStart.isEnabled = true
     }
 }

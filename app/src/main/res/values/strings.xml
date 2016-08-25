@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">MetaRoutine</string>
     <string name="btn_get_repos">Get repos</string>
-    <string name="btn_open_github_activity">Github activity</string>
+    <string name="btn_open_github_activity">Example using retrofit</string>
     <string name="default_user_name">pilgr</string>
     <string name="hint_github_username">github username</string>
     <string name="btnStart">Start</string>

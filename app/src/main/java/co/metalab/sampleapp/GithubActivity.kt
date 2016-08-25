@@ -34,7 +34,8 @@ class GitHubActivity : AppCompatActivity() {
 
     private fun refreshRepos() = asyncUI {
         txtRepos.text = ""
-        pbGetRepos.visibility = View.VISIBLE
+        progressBar.isIndeterminate = true
+        progressBar.visibility = View.VISIBLE
         btnGetRepos.isEnabled = false
         txtStatus.text = "Loading repos list..."
 
@@ -42,18 +43,20 @@ class GitHubActivity : AppCompatActivity() {
         reposList = await(github.listRepos(userName))
         showRepos(reposList)
 
-        reposList.forEach {
-            txtStatus.text = "Loading info for ${it.name}..."
-            val repoDetails = await(github.repoDetails(userName, it.name))
-            it.stars = repoDetails.stargazers_count
+        progressBar.isIndeterminate = false
+        reposList.forEachIndexed { i, repo ->
+            txtStatus.text = "Loading info for ${repo.name}..."
+            progressBar.progress = i * 100 / reposList.size
+            val repoDetails = await(github.repoDetails(userName, repo.name))
+            repo.stars = repoDetails.stargazers_count
             showRepos(reposList)
         }
 
-        pbGetRepos.visibility = View.INVISIBLE
+        progressBar.visibility = View.INVISIBLE
         btnGetRepos.isEnabled = true
         txtStatus.text = "Done."
     }.onError {
-        pbGetRepos.visibility = View.INVISIBLE
+        progressBar.visibility = View.INVISIBLE
         btnGetRepos.isEnabled = true
 
         val errorMessage = if (it is RetrofitHttpException) {

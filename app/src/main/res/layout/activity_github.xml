@@ -11,7 +11,7 @@
     tools:context="co.metalab.sampleapp.GitHubActivity">
 
     <ProgressBar
-        android:id="@+id/pbGetRepos"
+        android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,35 +21,38 @@
         android:indeterminate="true"
         android:visibility="invisible"/>
 
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/progressBar"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        tools:text="Loading..."/>
+
     <Button
         android:id="@+id/btnGetRepos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/pbGetRepos"
+        android:layout_below="@+id/txtStatus"
+        android:layout_marginTop="32dp"
         android:text="@string/btn_get_repos"/>
 
     <EditText
         android:id="@+id/txtUserName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/pbGetRepos"
-        android:layout_toLeftOf="@id/btnGetRepos"
+        android:layout_below="@+id/txtStatus"
         android:layout_marginRight="16dp"
-        android:hint="@string/hint_github_username"/>
-
-    <TextView
-        android:id="@+id/txtStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        tools:text="Loading..."/>
+        android:layout_marginTop="32dp"
+        android:layout_toLeftOf="@id/btnGetRepos"
+        android:hint="@string/hint_github_username"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"/>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/txtStatus"
         android:layout_below="@id/btnGetRepos">
 
         <TextView
