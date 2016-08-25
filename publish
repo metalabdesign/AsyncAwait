@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-./gradlew clean :library:bintrayUpload -x javadoc
+./gradlew clean :metaroutine:bintrayUpload -x javadoc
