@@ -11,6 +11,7 @@ group = "co.metalab"                                // Maven Group ID for the ar
 install {
     repositories.mavenInstaller {
         // This generates POM.xml with proper parameters
+        pom.artifactId = "metaroutine"
         pom {
             //noinspection GroovyAssignabilityCheck
             project {

@@ -23,7 +23,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
-        versionName "1.0-alpha1"
+        versionName "1"
     }
     buildTypes {
         release {
@@ -49,4 +49,4 @@ repositories {
     }
 }
 
-apply from: '../publish.gradle'
+apply from: './publish.gradle'
