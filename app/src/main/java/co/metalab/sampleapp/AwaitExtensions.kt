@@ -11,9 +11,9 @@ suspend fun <V> AsyncController.await(call: Call<V>, machine: Continuation<V>) {
         if (response.isSuccessful) {
             response.body()
         } else {
-            throw RetrofitHttpException(response.errorBody())
+            throw RetrofitHttpException(response)
         }
     }, machine)
 }
 
-class RetrofitHttpException(val errorBody: ResponseBody) : RuntimeException()
+class RetrofitHttpException(val errorResponse: Response<*>) : RuntimeException()

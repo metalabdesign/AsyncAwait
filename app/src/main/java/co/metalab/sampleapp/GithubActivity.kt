@@ -60,7 +60,9 @@ class GitHubActivity : AppCompatActivity() {
         btnGetRepos.isEnabled = true
 
         val errorMessage = if (it is RetrofitHttpException) {
-            Gson().fromJson(it.errorBody.string(), GithubErrorResponse::class.java).message
+            val httpErrorCode = it.errorResponse.code()
+            val errorResponse = Gson().fromJson(it.errorResponse.errorBody().string(), GithubErrorResponse::class.java)
+            "[$httpErrorCode] ${errorResponse.message}"
         } else {
             "Couldn't load repos (${it.message})"
         }
