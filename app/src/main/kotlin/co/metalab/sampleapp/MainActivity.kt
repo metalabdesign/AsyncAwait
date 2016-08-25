@@ -1,5 +1,6 @@
 package co.metalab.sampleapp
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -13,66 +14,69 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        button.setOnClickListener {
+        btnStart.setOnClickListener {
             //startCoroutine()
             //startCoroutineUsingMoreConvenientErrorHandling()
             startCoroutineWithProgress()
         }
+        btnOpenGithubActivity.setOnClickListener {
+            startActivity(Intent(this, GitHubActivity::class.java))
+        }
     }
 
     private fun startCoroutine() = asyncUI {
-        progress.visibility = View.VISIBLE
-        text.text = "Loading..."
+        pbStatus.visibility = View.VISIBLE
+        txtResult.text = "Loading..."
         try {
             // Release main thread and wait until text loaded
             // Progress animation shown during loading
             val loadedText = await(::loadText)
             // Loaded successfully, come back in UI thread and show result
-            text.text = loadedText + " (to be processed)"
+            txtResult.text = loadedText + " (to be processed)"
             // Oh ah we need to run more processing in background
-            text.text = await { processText(loadedText) }
+            txtResult.text = await { processText(loadedText) }
         } catch (e: Exception) {
             // Exception could be thrown in UI or background thread
             // but handled in UI thread
-            text.text = e.message
+            txtResult.text = e.message
         }
-        progress.visibility = View.INVISIBLE
+        pbStatus.visibility = View.INVISIBLE
     }
 
     private fun startCoroutineUsingMoreConvenientErrorHandling() = asyncUI {
-        progress.visibility = View.VISIBLE
-        text.text = "Loading..."
+        pbStatus.visibility = View.VISIBLE
+        txtResult.text = "Loading..."
         // Release main thread and wait until text loaded
         // Progress animation shown during loading
         val loadedText = await(::loadText)
         // Loaded successfully, come back in UI thread and show result
-        text.text = loadedText + " (to be processed)"
+        txtResult.text = loadedText + " (to be processed)"
         // Oh ah we need to run more processing in background
-        text.text = await { processText(loadedText) }
-        progress.visibility = View.INVISIBLE
+        txtResult.text = await { processText(loadedText) }
+        pbStatus.visibility = View.INVISIBLE
     }.onError {
-        text.text = it.message
-        progress.visibility = View.INVISIBLE
+        txtResult.text = it.message
+        pbStatus.visibility = View.INVISIBLE
     }
 
 
     private fun startCoroutineWithProgress() = asyncUI {
-        button.isEnabled = false
-        progress.visibility = View.VISIBLE
-        progressValues.visibility = View.VISIBLE
-        text.text = "Loading..."
+        btnStart.isEnabled = false
+        pbStatus.visibility = View.VISIBLE
+        pbValues.visibility = View.VISIBLE
+        txtResult.text = "Loading..."
 
         val loadedText = awaitWithProgress(::loadTextWithProgress) {
-            progressValues.progress = it
-            progressValues.max = 100
+            pbValues.progress = it
+            pbValues.max = 100
         }
 
-        progressValues.visibility = View.INVISIBLE
-        text.text = loadedText + " (to be processed)"
-        text.text = await { processText(loadedText) }
+        pbValues.visibility = View.INVISIBLE
+        txtResult.text = loadedText + " (to be processed)"
+        txtResult.text = await { processText(loadedText) }
 
-        progress.visibility = View.INVISIBLE
-        button.isEnabled = true
+        pbStatus.visibility = View.INVISIBLE
+        btnStart.isEnabled = true
     }
 }
 

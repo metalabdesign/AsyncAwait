@@ -32,6 +32,7 @@ typealias ErrorHandler = (Exception) -> Unit
 
 typealias ProgressHandler<P> = (P) -> Unit
 
+@AllowSuspendExtensions
 class AsyncController(val activity: Activity? = null,
                       val fragment: Fragment? = null) {
     private var errorHandler: ErrorHandler? = null
