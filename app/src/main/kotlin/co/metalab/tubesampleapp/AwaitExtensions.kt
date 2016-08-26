@@ -1,6 +1,6 @@
-package co.metalab.sampleapp
+package co.metalab.tubesampleapp
 
-import co.metalab.metaroutine.AsyncController
+import co.metalab.tube.AsyncController
 import retrofit2.Call
 import retrofit2.Response
 

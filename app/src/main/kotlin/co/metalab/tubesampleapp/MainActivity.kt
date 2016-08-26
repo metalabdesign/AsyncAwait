@@ -1,11 +1,11 @@
-package co.metalab.sampleapp
+package co.metalab.tubesampleapp
 
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import co.metalab.metaroutine.asyncUI
-import co.metalab.metaroutine.ProgressHandler
+import co.metalab.tube.asyncUI
+import co.metalab.tube.ProgressHandler
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
 

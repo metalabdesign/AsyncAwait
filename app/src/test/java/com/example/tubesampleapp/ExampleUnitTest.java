@@ -1,4 +1,4 @@
-package co.metalab.metaroutine;
+package com.example.tubesampleapp;
 
 import org.junit.Test;
 

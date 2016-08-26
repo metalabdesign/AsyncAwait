@@ -1,5 +1,5 @@
 <resources>
-   <string name="app_name">MetaRoutine</string>
+   <string name="app_name">Tube Sample App</string>
    <string name="btn_get_repos">Get repos</string>
    <string name="btn_open_github_activity">Example using retrofit</string>
    <string name="default_user_name">pilgr</string>

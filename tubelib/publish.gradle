@@ -2,11 +2,11 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 // This is the library version used when deploying the artifact
-version = "0.9-alpha1"
+version = "0.5-alpha1"
 
-def siteUrl = 'https://github.com/metalabdesign/MetaRoutine'      // Homepage URL of the library
-def gitUrl = 'https://github.com/metalabdesign/MetaRoutine.git'   // Git repository URL
-group = "co.metalab"                                // Maven Group ID for the artifact
+def siteUrl = 'https://github.com/metalabdesign/Tube'      // Homepage URL of the library
+def gitUrl = 'https://github.com/metalabdesign/Tube.git'   // Git repository URL
+group = "co.metalab.android"                                // Maven Group ID for the artifact
 
 install {
     repositories.mavenInstaller {
@@ -54,7 +54,7 @@ bintray {
     configurations = ['archives']
     pkg {
         repo = "maven"
-        name = "metaroutine"
+        name = "tube"
         userOrg = "metalab"
         websiteUrl = siteUrl
         vcsUrl = gitUrl

@@ -8,7 +8,7 @@
    android:paddingLeft="@dimen/activity_horizontal_margin"
    android:paddingRight="@dimen/activity_horizontal_margin"
    android:orientation="vertical"
-   tools:context="co.metalab.sampleapp.MainActivity">
+   tools:context="co.metalab.tubesampleapp.MainActivity">
 
    <ProgressBar
       android:id="@+id/progressBar"

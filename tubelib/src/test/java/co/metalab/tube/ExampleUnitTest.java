@@ -1,4 +1,4 @@
-package com.example.coroutineandroid;
+package co.metalab.tube;
 
 import org.junit.Test;
 

@@ -22,7 +22,7 @@ android {
     buildToolsVersion "24.0.1"
 
     defaultConfig {
-        applicationId "com.example.coroutineandroid"
+        applicationId "co.metalab.tubesampleapp"
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 1
@@ -44,7 +44,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:24.2.0'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile project(':metaroutine')
+    compile project(':tubelib')
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
 }
