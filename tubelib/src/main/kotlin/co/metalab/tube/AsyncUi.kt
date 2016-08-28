@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Fragment
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import java.util.concurrent.Executors
 
 private val executor = Executors.newSingleThreadExecutor()
@@ -20,7 +21,8 @@ fun Fragment.asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): Asy
    return asyncUI(c, AsyncController(fragment = this))
 }
 
-internal fun asyncUI(c: AsyncController.() -> Continuation<Unit>, controller: AsyncController): AsyncController {
+internal fun asyncUI(c: AsyncController.() -> Continuation<Unit>,
+                     controller: AsyncController): AsyncController {
    // TODO If not in UI thread - force run resume() in UI thread
    controller.c().resume(Unit)
    return controller
@@ -31,37 +33,38 @@ typealias ErrorHandler = (Exception) -> Unit
 typealias ProgressHandler<P> = (P) -> Unit
 
 @AllowSuspendExtensions
-class AsyncController(val activity: Activity? = null,
-                      val fragment: Fragment? = null) {
+class AsyncController(val activity: Activity? = null, val fragment: Fragment? = null) {
    private var errorHandler: ErrorHandler? = null
-   private val uiHandler = Handler(Looper.getMainLooper())
+   private val uiHandler = object : Handler(Looper.getMainLooper()) {
+      override fun handleMessage(msg: Message) {
+         if (isAlive()) {
+            @Suppress("UNCHECKED_CAST")
+            (msg.obj as () -> Unit)()
+         }
+      }
+   }
 
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
       executor.submit {
          try {
             val value = f()
-            runOnUiIfAlive {
-               machine.resume(value)
-            }
+            runOnUi { machine.resume(value) }
          } catch (e: Exception) {
-            runOnUiIfAlive {
-               errorHandler?.invoke(e) ?: machine.resumeWithException(e)
-            }
+            handleException(e, machine)
          }
       }
    }
 
-   suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V, publishProgress: ProgressHandler<P>, machine: Continuation<V>) {
+   suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
+                                        publishProgress: ProgressHandler<P>, machine: Continuation<V>) {
       executor.submit {
          try {
             val value = f { progressValue ->
-               runOnUiIfAlive { publishProgress(progressValue) }
+               runOnUi { publishProgress(progressValue) }
             }
-            runOnUiIfAlive { machine.resume(value) }
+            runOnUi { machine.resume(value) }
          } catch (e: Exception) {
-            runOnUiIfAlive {
-               errorHandler?.invoke(e) ?: machine.resumeWithException(e)
-            }
+            handleException(e, machine)
          }
       }
    }
@@ -70,22 +73,22 @@ class AsyncController(val activity: Activity? = null,
       this.errorHandler = errorHandler
    }
 
+   private fun <V> handleException(e: Exception, machine: Continuation<V>) {
+      runOnUi { errorHandler?.invoke(e) ?: machine.resumeWithException(e) }
+   }
+
    private fun isAlive(): Boolean {
       if (activity != null) {
          return !activity.isFinishing
       } else if (fragment != null) {
-         return fragment.context != null && !fragment.isDetached
+         return fragment.activity != null && !fragment.isDetached
       } else {
-         return false
+         return true
       }
    }
 
-   private inline fun runOnUiIfAlive(crossinline block: () -> Unit) {
-      uiHandler.post {
-         if (isAlive()) {
-            block()
-         }
-      }
+   private fun runOnUi(block: () -> Unit) {
+      uiHandler.obtainMessage(0, block).sendToTarget()
    }
 
 }
