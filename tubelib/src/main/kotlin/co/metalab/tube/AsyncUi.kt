@@ -56,11 +56,11 @@ class AsyncController(val activity: Activity? = null, val fragment: Fragment? = 
    }
 
    suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
-                                        publishProgress: ProgressHandler<P>, machine: Continuation<V>) {
+                                        onProgress: ProgressHandler<P>, machine: Continuation<V>) {
       executor.submit {
          try {
             val value = f { progressValue ->
-               runOnUi { publishProgress(progressValue) }
+               runOnUi { onProgress(progressValue) }
             }
             runOnUi { machine.resume(value) }
          } catch (e: Exception) {
