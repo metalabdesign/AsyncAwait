@@ -12,13 +12,13 @@ import java.util.concurrent.TimeoutException
 import kotlin.test.*
 
 @RunWith(RobolectricTestRunner::class)
-class AsyncUiTest {
+class AsyncTest {
 
    @Test
    fun `Normal async-await usage`() {
       var result = ""
       var done = false
-      asyncUI {
+      async {
          result = await { "O" } + "K"
          done = true
       }
@@ -33,7 +33,7 @@ class AsyncUiTest {
       var result = ""
       var done = false
       assertEquals(Looper.getMainLooper(), Looper.myLooper(), "1. Test runs on UI thread")
-      asyncUI {
+      async {
          assertEquals(Looper.getMainLooper(), Looper.myLooper(), "2. Continue on UI thread")
 
          result = await {
@@ -54,7 +54,7 @@ class AsyncUiTest {
 
    @Test(expected = RuntimeException::class)
    fun `Unhandled exception in background thread delivered to system`() {
-      asyncUI {
+      async {
          await { throw RuntimeException("Catch me!") }
          @Suppress("UNREACHABLE_CODE")
          fail("Exception should be thrown before this point")
@@ -65,7 +65,7 @@ class AsyncUiTest {
    @Test
    fun `Exception from background thread can be caught outside await block using try-catch in UI thread`() {
       var done = false
-      asyncUI {
+      async {
          try {
             await { throw RuntimeException("Catch me!") }
             @Suppress("UNREACHABLE_CODE")
@@ -82,7 +82,7 @@ class AsyncUiTest {
    @Test
    fun `Exception from background thread can be caught in onError block in UI thread`() {
       var done = false
-      asyncUI {
+      async {
          await { throw RuntimeException("Catch me!") }
          @Suppress("UNREACHABLE_CODE")
          fail("Exception should be thrown before this point")
@@ -97,7 +97,7 @@ class AsyncUiTest {
    @Test
    fun `Catch block is ignored when error block is specified`() {
       var done = false
-      asyncUI {
+      async {
          try {
             await { throw RuntimeException("Catch me!") }
          } catch (e: RuntimeException) {
@@ -124,7 +124,7 @@ class AsyncUiTest {
          return "OK"
       }
 
-      asyncUI {
+      async {
          result = awaitWithProgress(::load) {
             // Handle progress changes
             progressValues += it
@@ -146,7 +146,7 @@ class AsyncUiTest {
 
       var result = ""
       var done = false
-      activity.asyncUI {
+      activity.async {
          result = "O"
          result += await { "K" }
          done = true
@@ -162,7 +162,7 @@ class AsyncUiTest {
 
       var result = ""
       var done = false
-      activity.asyncUI {
+      activity.async {
          result = "O"
          Mockito.`when`(activity.isFinishing).thenReturn(true)
          result += await { done = true; "K" }
@@ -181,7 +181,7 @@ class AsyncUiTest {
 
       var result = ""
       var done = false
-      fragment.asyncUI {
+      fragment.async {
          result = "O"
          result += await { "K" }
          done = true
@@ -198,7 +198,7 @@ class AsyncUiTest {
 
       var result = ""
       var done = false
-      fragment.asyncUI {
+      fragment.async {
          result = "O"
          Mockito.`when`(fragment.isDetached).thenReturn(true)
          result += await { done = true; "K" }
@@ -216,7 +216,7 @@ class AsyncUiTest {
 
       var result = ""
       var done = false
-      fragment.asyncUI {
+      fragment.async {
          result = "O"
          Mockito.`when`(fragment.activity).thenReturn(null)
          result += await { done = true; "K" }

@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import co.metalab.asyncawait.AsyncController
-import co.metalab.asyncawait.asyncUI
+import co.metalab.asyncawait.async
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_github.*
 import retrofit2.Call
@@ -32,7 +32,7 @@ class GitHubActivity : AppCompatActivity() {
       btnGetRepos.setOnClickListener { refreshRepos() }
    }
 
-   private fun refreshRepos() = asyncUI {
+   private fun refreshRepos() = async {
       txtRepos.text = ""
       progressBar.isIndeterminate = true
       progressBar.visibility = View.VISIBLE

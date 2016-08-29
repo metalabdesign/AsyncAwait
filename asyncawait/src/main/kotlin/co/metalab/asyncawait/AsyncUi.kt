@@ -9,20 +9,20 @@ import java.util.concurrent.Executors
 
 private val executor = Executors.newSingleThreadExecutor()
 
-fun asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return asyncUI(c, AsyncController())
+fun async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+   return async(c, AsyncController())
 }
 
-fun Activity.asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return asyncUI(c, AsyncController(activity = this))
+fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+   return async(c, AsyncController(activity = this))
 }
 
-fun Fragment.asyncUI(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return asyncUI(c, AsyncController(fragment = this))
+fun Fragment.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+   return async(c, AsyncController(fragment = this))
 }
 
-internal fun asyncUI(c: AsyncController.() -> Continuation<Unit>,
-                     controller: AsyncController): AsyncController {
+internal fun async(c: AsyncController.() -> Continuation<Unit>,
+                   controller: AsyncController): AsyncController {
    // TODO If not in UI thread - force run resume() in UI thread
    controller.c().resume(Unit)
    return controller

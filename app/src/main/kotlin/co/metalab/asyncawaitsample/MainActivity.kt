@@ -4,7 +4,7 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import co.metalab.asyncawait.asyncUI
+import co.metalab.asyncawait.async
 import co.metalab.asyncawait.ProgressHandler
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
       }
    }
 
-   private fun startCoroutine() = asyncUI {
+   private fun startCoroutine() = async {
       progressBar.visibility = View.VISIBLE
       txtResult.text = "Loading..."
       try {
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
       progressBar.visibility = View.INVISIBLE
    }
 
-   private fun startCoroutineUsingMoreConvenientErrorHandling() = asyncUI {
+   private fun startCoroutineUsingMoreConvenientErrorHandling() = async {
       progressBar.visibility = View.VISIBLE
       txtResult.text = "Loading..."
       // Release main thread and wait until text loaded
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
    }
 
 
-   private fun startCoroutineWithProgress() = asyncUI {
+   private fun startCoroutineWithProgress() = async {
       btnStart.isEnabled = false
       progressBar.visibility = View.VISIBLE
       progressBar.isIndeterminate = false
