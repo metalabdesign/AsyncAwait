@@ -23,7 +23,6 @@ fun Fragment.async(coroutine c: AsyncController.() -> Continuation<Unit>): Async
 
 internal fun async(c: AsyncController.() -> Continuation<Unit>,
                    controller: AsyncController): AsyncController {
-   // TODO If not in UI thread - force run resume() in UI thread
    controller.c().resume(Unit)
    return controller
 }
