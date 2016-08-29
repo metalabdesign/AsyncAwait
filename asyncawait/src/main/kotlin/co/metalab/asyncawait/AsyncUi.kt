@@ -32,7 +32,8 @@ typealias ErrorHandler = (Exception) -> Unit
 typealias ProgressHandler<P> = (P) -> Unit
 
 @AllowSuspendExtensions
-class AsyncController(val activity: Activity? = null, val fragment: Fragment? = null) {
+class AsyncController(private val activity: Activity? = null,
+                      private val fragment: Fragment? = null) {
    private var errorHandler: ErrorHandler? = null
    private val uiHandler = object : Handler(Looper.getMainLooper()) {
       override fun handleMessage(msg: Message) {
