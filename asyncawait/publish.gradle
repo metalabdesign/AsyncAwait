@@ -4,9 +4,9 @@ apply plugin: 'com.jfrog.bintray'
 // This is the library version used when deploying the artifact
 version = "0.5-alpha1"
 
-def siteUrl = 'https://github.com/metalabdesign/Tube'      // Homepage URL of the library
-def gitUrl = 'https://github.com/metalabdesign/Tube.git'   // Git repository URL
-group = "co.metalab.android"                                // Maven Group ID for the artifact
+def siteUrl = 'https://github.com/metalabdesign/AsyncAwait'    // Homepage URL of the library
+def gitUrl = 'https://github.com/metalabdesign/AsyncAwait.git' // Git repository URL
+group = "co.metalab.asyncawait"                                // Maven Group ID for the artifact
 
 install {
     repositories.mavenInstaller {
@@ -54,7 +54,7 @@ bintray {
     configurations = ['archives']
     pkg {
         repo = "maven"
-        name = "tube"
+        name = "asyncawait"
         userOrg = "metalab"
         websiteUrl = siteUrl
         vcsUrl = gitUrl

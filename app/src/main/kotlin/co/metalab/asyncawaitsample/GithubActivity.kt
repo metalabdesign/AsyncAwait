@@ -1,11 +1,11 @@
-package co.metalab.tubesampleapp
+package co.metalab.asyncawaitsample
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import co.metalab.tube.AsyncController
-import co.metalab.tube.asyncUI
+import co.metalab.asyncawait.AsyncController
+import co.metalab.asyncawait.asyncUI
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_github.*
 import retrofit2.Call
