@@ -21,6 +21,7 @@ android {
 
     defaultConfig {
         minSdkVersion 15
+        //noinspection OldTargetApi
         targetSdkVersion 23
         versionCode 1
         versionName "1"
@@ -38,6 +39,7 @@ android {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile "org.robolectric:robolectric:3.1.2"
