@@ -42,6 +42,7 @@ apply from: './publish.gradle'
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     optional 'com.squareup.retrofit2:retrofit:2.1.0'
+    optional 'io.reactivex:rxjava:1.1.9'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile "org.robolectric:robolectric:3.1.2"
