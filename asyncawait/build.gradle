@@ -37,9 +37,11 @@ android {
     }
 }
 
+apply from: './publish.gradle'
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    optional 'com.squareup.retrofit2:retrofit:2.1.0'
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testCompile 'junit:junit:4.12'
     testCompile "org.robolectric:robolectric:3.1.2"
@@ -52,5 +54,3 @@ repositories {
         url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
     }
 }
-
-apply from: './publish.gradle'
