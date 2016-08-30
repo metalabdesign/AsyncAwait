@@ -13,7 +13,7 @@ suspend fun <V> AsyncController.await(call: Call<V>, machine: Continuation<Respo
 }
 
 /**
- * Waits successful execution of retrofit's [call]. If request finished with HTTP error - the
+ * Waits successful execution of retrofit's [call]. If request finished with HTTP error the
  * custom [RetrofitHttpError] will be thrown.
  *
  * @return The awaited result - a body of successful response
