@@ -11,7 +11,7 @@ async {
    progressBar.visibility = View.INVISIBLE
 }
 ```
-The point is that you can write asynchronous code in a simple imperative style. Calling `await` to run code in background doesn't lock UI thread. Then execution _continues_ in UI thread after background work is finished. There is no magic, see how it works (LINK HERE).
+The point is that you can write asynchronous code in a simple imperative style. Calling `await` to run code in background doesn't lock UI thread. Then execution _continues_ in UI thread after background work is finished. There is no magic, see [how it works](#how-it-works).
 
 
 ## Usage
@@ -129,7 +129,7 @@ async {
 }
 ```
 
-### How to create custom extensions
+###How to create custom extensions
 You can create your own `await` implementations. Here is example to give you idea 
 ```Kotlin
 suspend fun <V> AsyncController.await(observable: Observable<V>, machine: Continuation<V>) {
@@ -137,7 +137,7 @@ suspend fun <V> AsyncController.await(observable: Observable<V>, machine: Contin
 }
 ```
 
-## How it works
+##How it works
 
 The library is built upon [coroutines](https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md) introduced in [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2016/07/first-glimpse-of-kotlin-1-1-coroutines-type-aliases-and-more/).
 
