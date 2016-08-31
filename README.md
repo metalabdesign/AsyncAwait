@@ -1,5 +1,5 @@
-## AsyncAwait
-A Kotlin Android library allowing write asynchronous code in synchronous style using `async`/`await` approach, like:
+# Async/Await
+A Kotlin library allowing write asynchronous code in synchronous style using `async`/`await` approach on Android, like:
 
 ```Kotlin
 async {
@@ -11,13 +11,13 @@ async {
    progressBar.visibility = View.INVISIBLE
 }
 ```
-As you can see, we don't have callback to be executed when `loadFromServer()` is done. All the code after calling `await` can be treated like a "callback". But there is no magic here. See How it works (LINK HERE).
+The point is that you can write asynchronous code in a simple imperative style. Calling `await` to run code in background doesn't lock UI thread. Then execution _continues_ in UI thread after background work is finished. There is no magic, see how it works (LINK HERE).
 
 
 ## Usage
 ### `async`
 
-Coroutine code have to be passed as a lambda in `async` function
+Coroutine code has to be passed as a lambda in `async` function
 ```Kotlin
 async {
    // Coroutine body
@@ -26,7 +26,7 @@ async {
 
 ### `await`
 
-Long running code have to be passed as a lambda in `await` function
+Long running code has to be passed as a lambda in `await` function
 ```Kotlin
 async {
    val result = await {
@@ -50,14 +50,15 @@ async {
 
 ### `awaitWithProgress`
 
-Use to show loading progress, where second parameter is a progress handler.
+Use it to show loading progress, its second parameter is a progress handler.
 ```Kotlin
 val loadedText = awaitWithProgress(::loadTextWithProgress) {
+         // Called in UI thread
          progressBar.progress = it
          progressBar.max = 100
       }
 ```
-The data loading function (like `loadTextWithProgress` above) should have a functional parameter of type `(P) -> Unit` which can be called on order to push progress value. For example above it could be 
+A data loading function (like the `loadTextWithProgress` above) should has a functional parameter of type `(P) -> Unit` which can be called in order to push progress value. For example, it could be like:
 ```Kotlin
 private fun loadTextWithProgress(handleProgress: (Int) -> Unit): String {
    for (i in 1..10) {
@@ -68,7 +69,7 @@ private fun loadTextWithProgress(handleProgress: (Int) -> Unit): String {
 }
 ```
 
-### Handle exception using `try/catch`
+### Handle exceptions using `try/catch`
 
 ```Kotlin
 async {
@@ -85,7 +86,7 @@ async {
 
 ### Handle exceptions using `onError` block
 
-Could be more convenient as resulting code has less indents. Has more priority than `try/catch` around `await`.
+Using `onError` can be more convenient because resulting code has fewer indents. `onError`, when defined, has more priority than `try/catch`.
 ```Kotlin
 async {
    val loadedText = await {
@@ -99,10 +100,12 @@ async {
 
 ### Safe execution
 
-There is `Actiivty.async` and `Fragment.async` extension functions. In order to use them the result won't be delivered if eg. `Activity` is finishing or `Fragment` is detached. 
-
+The library has `Activity.async` and `Fragment.async` extension functions to produce more safe code. So when using `async` inside Activity/Fragment, coroutine won't be resumed if `Activity` is in finishing state or `Fragment` is detached.
 
 ### Common extensions
+
+The library has a convenient API to work with Retrofit and rxJava.
+
 #### For Retorift
 * `await(retrofit2.Call)`
 ```Kotlin
@@ -111,7 +114,7 @@ reposResponse = await(github.listRepos(userName))
 
 * `awaitSuccessful(retrofit2.Call)`
 
-Returns `Response<V>.body()` if successful, throw `RetrofitHttpError` with error response otherwise.  
+Returns `Response<V>.body()` if successful, or throws `RetrofitHttpError` with error response otherwise.  
 ```Kotlin
 reposList = awaitSuccessful(github.listRepos(userName))
 ```
@@ -126,7 +129,7 @@ async {
 }
 ```
 
-### How to create extensions
+### How to create custom extensions
 You can create your own `await` implementations. Here is example to give you idea 
 ```Kotlin
 suspend fun <V> AsyncController.await(observable: Observable<V>, machine: Continuation<V>) {
@@ -138,8 +141,7 @@ suspend fun <V> AsyncController.await(observable: Observable<V>, machine: Contin
 
 The library is built upon [coroutines](https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md) introduced in [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2016/07/first-glimpse-of-kotlin-1-1-coroutines-type-aliases-and-more/).
 
-The Kotlin compiler responsibility is to convert _coroutine_ (everything inside `async` block) into state machine, where every `await` call is non-blocking suspension point. The library is responsible for thread handling and state machine managing. When background computation is done the library delivers result back into UI thread and resumes _coroutine_ execution.
-
+The Kotlin compiler responsibility is to convert _coroutine_ (everything inside `async` block) into a state machine, where every `await` call is non-blocking suspension point. The library is responsible for thread handling and managing state machine. When background computation is done the library delivers result back into UI thread and resumes _coroutine_ execution.
 
 # How to use it
 Add library dependency into your app's `build.gradle`
@@ -148,18 +150,19 @@ compile 'co.metalab.asyncawait:asyncawait:0.5'
 ```
 
 As for now Kotlin 1.1 is not released yet, you have to download and setup latest Early Access Preview release. 
-* Go to `Tools->Kotlin->Configure Kotlin Plugin updates->Select EAP 1.1->Check for updates` and install latest one. 
+* Go to `Tools` -> `Kotlin` -> `Configure Kotlin Plugin updates` -> `Select EAP 1.1` -> `Check for updates` and install latest one. 
 * Make sure you have similar config in the main `build.gradle`
 ```
 buildscript {
     ext.kotlin_version = '1.1-M01'
     repositories {
-        jcenter()
+        ...
         maven {
             url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
         }
     }
     dependencies {
+        // (!) 2.1.2 This version is more stable with Kotlin for now
         classpath 'com.android.tools.build:gradle:2.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
@@ -169,7 +172,7 @@ buildscript {
 ```
 buildscript {
     repositories {
-        jcenter()
+        ...
         maven {
             url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
         }
@@ -180,7 +183,7 @@ buildscript {
     }
 }
 ```
-and this one for getting latest kotlin-stdlib
+and this section for getting latest kotlin-stdlib
 ```
 repositories {
     mavenCentral()
