@@ -1,5 +1,5 @@
 # Async/Await
-A Kotlin library for Android allowing writes asynchronous code in synchronous style using `async`/`await` approach
+A Kotlin library for Android allowing writing asynchronous code in synchronous style using `async`/`await` approach
 
 ```Kotlin
 async {
