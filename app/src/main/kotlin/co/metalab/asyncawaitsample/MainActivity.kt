@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
 import co.metalab.asyncawait.ProgressHandler
 import co.metalab.asyncawait.async
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
       }
       btnTestMemoryLeaks.setOnClickListener {
          startVeryLongTask()
+         System.gc()
       }
    }
 
@@ -87,8 +89,10 @@ class MainActivity : AppCompatActivity() {
       btnTestMemoryLeaks.text = "Press Back, watch leaks..."
       btnTestMemoryLeaks.text = await {
          SystemClock.sleep(10000)
+         Log.d("MainActivity", "Task is done")
          "Done. So, did you see leaks?"
       }
+      Log.d("MainActivity", "Result delivered in UI thread")
    }
 }
 

@@ -5,6 +5,7 @@ import android.app.Fragment
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executors
 
 private val executor = Executors.newSingleThreadExecutor()
@@ -77,8 +78,14 @@ typealias ProgressHandler<P> = (P) -> Unit
  * Controls coroutine execution and thread scheduling
  */
 @AllowSuspendExtensions
-class AsyncController(private val activity: Activity? = null,
-                      private val fragment: Fragment? = null) {
+class AsyncController(private var activity: Activity? = null,
+                      private var fragment: Fragment? = null) : ActivityLifecycleCallbacks {
+   init {
+      activity?.apply {
+         application.registerActivityLifecycleCallbacks(this@AsyncController)
+      }
+   }
+
    private var errorHandler: ErrorHandler? = null
    private val uiHandler = object : Handler(Looper.getMainLooper()) {
       override fun handleMessage(msg: Message) {
@@ -88,6 +95,8 @@ class AsyncController(private val activity: Activity? = null,
          }
       }
    }
+
+   private var machineRefHolder: Continuation<*>? = null
 
    /**
     * Non-blocking suspension point. Coroutine execution will proceed after [f] is finished
@@ -100,14 +109,13 @@ class AsyncController(private val activity: Activity? = null,
     * in background thread
     */
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
-      executor.submit {
-         try {
-            val value = f()
-            runOnUi { machine.resume(value) }
-         } catch (e: Exception) {
-            handleException(e, machine)
-         }
+      machineRefHolder = machine //Hold reference to protect it from GC
+      val task = if (activity != null) {
+         WeakAwaitTask(f, WeakReference(this), WeakReference(machine))
+      } else {
+         StrongAwaitTask(f, this, machine)
       }
+      executor.submit(task)
    }
 
    /**
@@ -146,22 +154,61 @@ class AsyncController(private val activity: Activity? = null,
       this.errorHandler = errorHandler
    }
 
-   private fun <V> handleException(e: Exception, machine: Continuation<V>) {
+   internal fun <V> handleException(e: Exception, machine: Continuation<V>) {
       runOnUi { errorHandler?.invoke(e) ?: machine.resumeWithException(e) }
    }
 
    private fun isAlive(): Boolean {
-      if (activity != null) {
-         return !activity.isFinishing
-      } else if (fragment != null) {
-         return fragment.activity != null && !fragment.isDetached
-      } else {
-         return true
+      activity?.apply { return !isFinishing }
+      fragment?.apply { return activity != null && !isDetached }
+
+      return true
+   }
+
+   internal fun runOnUi(block: () -> Unit) {
+      uiHandler.obtainMessage(0, block).sendToTarget()
+   }
+
+   override fun onActivityDestroyed(destroyedActivity: Activity) {
+      if (destroyedActivity != activity) return
+
+      activity?.apply {
+         application.unregisterActivityLifecycleCallbacks(this@AsyncController)
       }
    }
 
-   private fun runOnUi(block: () -> Unit) {
-      uiHandler.obtainMessage(0, block).sendToTarget()
+}
+
+private class StrongAwaitTask<V>(val f: () -> V,
+                                 val asyncController: AsyncController,
+                                 val machine: Continuation<V>) : Runnable {
+   override fun run() {
+      try {
+         val value = f()
+         asyncController.runOnUi { machine.resume(value) }
+      } catch (e: Exception) {
+         asyncController.handleException(e, machine)
+      }
+   }
+
+}
+
+private class WeakAwaitTask<V>(val f: () -> V,
+                               val asyncControllerWeakRef: WeakReference<AsyncController>,
+                               val machineWeakRef: WeakReference<Continuation<V>>) : Runnable {
+   override fun run() {
+      if (asyncControllerWeakRef.get() == null) return
+
+      try {
+         val value = f()
+         machineWeakRef.get()?.apply {
+            asyncControllerWeakRef.get()?.runOnUi { this.resume(value) }
+         }
+      } catch (e: Exception) {
+         machineWeakRef.get()?.apply {
+            asyncControllerWeakRef.get()?.handleException(e, this)
+         }
+      }
    }
 
 }

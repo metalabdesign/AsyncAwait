@@ -1,6 +1,7 @@
 package co.metalab.asyncawait
 
 import android.app.Activity
+import android.app.Application
 import android.app.Fragment
 import android.os.Handler
 import android.os.Looper
@@ -143,6 +144,7 @@ class AsyncTest {
    fun `Deliver result when Activity is alive`() {
       val activity = Mockito.mock(Activity::class.java)
       Mockito.`when`(activity.isFinishing).thenReturn(false)
+      Mockito.`when`(activity.application).thenReturn(Mockito.mock(Application::class.java))
 
       var result = ""
       var done = false
@@ -159,6 +161,7 @@ class AsyncTest {
    @Test
    fun `Do not deliver result when Activity is finishing`() {
       val activity = Mockito.mock(Activity::class.java)
+      Mockito.`when`(activity.application).thenReturn(Mockito.mock(Application::class.java))
 
       var result = ""
       var done = false
