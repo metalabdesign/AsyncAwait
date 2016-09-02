@@ -1,11 +1,12 @@
 package co.metalab.asyncawaitsample
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock
+import android.support.v7.app.AppCompatActivity
 import android.view.View
-import co.metalab.asyncawait.async
 import co.metalab.asyncawait.ProgressHandler
+import co.metalab.asyncawait.async
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -21,6 +22,9 @@ class MainActivity : AppCompatActivity() {
       }
       btnOpenGithubActivity.setOnClickListener {
          startActivity(Intent(this, GitHubActivity::class.java))
+      }
+      btnTestMemoryLeaks.setOnClickListener {
+         startVeryLongTask()
       }
    }
 
@@ -77,6 +81,14 @@ class MainActivity : AppCompatActivity() {
 
       progressBar.visibility = View.INVISIBLE
       btnStart.isEnabled = true
+   }
+
+   private fun startVeryLongTask() = async {
+      btnTestMemoryLeaks.text = "Press Back, watch leaks..."
+      btnTestMemoryLeaks.text = await {
+         SystemClock.sleep(10000)
+         "Done. So, did you see leaks?"
+      }
    }
 }
 

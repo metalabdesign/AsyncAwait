@@ -41,6 +41,14 @@
       android:layout_weight="1"/>
 
    <Button
+      android:id="@+id/btnTestMemoryLeaks"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginTop="32dp"
+      android:text="@string/btn_test_memory_leaks"/>
+
+   <Button
       android:id="@+id/btnOpenGithubActivity"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"

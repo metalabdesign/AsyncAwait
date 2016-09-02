@@ -5,4 +5,5 @@
    <string name="default_user_name">pilgr</string>
    <string name="hint_github_username">github username</string>
    <string name="btnStart">Start</string>
+   <string name="btn_test_memory_leaks">Test memory leaks</string>
 </resources>
