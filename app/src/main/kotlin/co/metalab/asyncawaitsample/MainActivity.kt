@@ -11,7 +11,9 @@ import co.metalab.asyncawait.async
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OrangeView {
+
+   private lateinit var orangePresenter: OrangePresenter
 
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
@@ -27,6 +29,10 @@ class MainActivity : AppCompatActivity() {
       btnTestMemoryLeaks.setOnClickListener {
          startVeryLongTask()
          System.gc()
+      }
+      orangePresenter = OrangePresenter(this)
+      btnOrangeTestMemoryLeaks.setOnClickListener {
+         orangePresenter.startLongRunningOrangeTask()
       }
    }
 
@@ -94,6 +100,11 @@ class MainActivity : AppCompatActivity() {
       }
       Log.d("MainActivity", "Result delivered in UI thread")
    }
+
+   override fun setOrangeButtonText(text: String) {
+      btnOrangeTestMemoryLeaks.text = text
+   }
+
 }
 
 @DebugLog

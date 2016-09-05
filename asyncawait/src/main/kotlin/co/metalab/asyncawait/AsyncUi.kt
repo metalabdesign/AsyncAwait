@@ -79,8 +79,11 @@ typealias ProgressHandler<P> = (P) -> Unit
  */
 @AllowSuspendExtensions
 class AsyncController(private var activity: Activity? = null,
-                      private var fragment: Fragment? = null) : ActivityLifecycleCallbacks {
+                      private val fragment: Fragment? = null) : ActivityLifecycleCallbacks {
    init {
+      fragment?.apply {
+         this@AsyncController.activity = this.activity
+      }
       activity?.apply {
          application.registerActivityLifecycleCallbacks(this@AsyncController)
       }
