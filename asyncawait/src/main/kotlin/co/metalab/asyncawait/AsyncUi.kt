@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import java.lang.ref.WeakReference
+import java.util.*
 import java.util.concurrent.Executors
 
 private val executor = Executors.newSingleThreadExecutor()
@@ -23,8 +24,8 @@ private val executor = Executors.newSingleThreadExecutor()
  *
  * @return AsyncController object allowing to define optional `onError` handler
  */
-fun async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return async(c, AsyncController())
+fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+   return async(c, AsyncController(disposableTarget = this))
 }
 
 /**
@@ -74,12 +75,19 @@ typealias ErrorHandler = (Exception) -> Unit
 
 typealias ProgressHandler<P> = (P) -> Unit
 
+private val targetsMap = HashMap<Any, AsyncController>()
+
+fun Any.stopAsyncAwaitTasks() {
+   targetsMap.remove(this)
+}
 /**
  * Controls coroutine execution and thread scheduling
  */
 @AllowSuspendExtensions
 class AsyncController(private var activity: Activity? = null,
-                      private val fragment: Fragment? = null) : ActivityLifecycleCallbacks {
+                      private val fragment: Fragment? = null,
+                      private val disposableTarget : Any? = null) : ActivityLifecycleCallbacks {
+
    init {
       fragment?.apply {
          this@AsyncController.activity = this.activity
@@ -87,6 +95,7 @@ class AsyncController(private var activity: Activity? = null,
       activity?.apply {
          application.registerActivityLifecycleCallbacks(this@AsyncController)
       }
+      disposableTarget?.apply { targetsMap[this] = this@AsyncController }
    }
 
    private var errorHandler: ErrorHandler? = null
@@ -113,7 +122,7 @@ class AsyncController(private var activity: Activity? = null,
     */
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
       machineRefHolder = machine //Hold reference to protect it from GC
-      val task = if (activity != null) {
+      val task = if (activity != null || disposableTarget != null) {
          WeakAwaitTask(f, WeakReference(this), WeakReference(machine))
       } else {
          StrongAwaitTask(f, this, machine)

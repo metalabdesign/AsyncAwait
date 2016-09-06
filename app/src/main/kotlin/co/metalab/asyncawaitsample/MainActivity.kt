@@ -19,9 +19,9 @@ class MainActivity : AppCompatActivity(), OrangeView {
       super.onCreate(savedInstanceState)
       setContentView(R.layout.activity_main)
       btnStart.setOnClickListener {
-         //startCoroutine()
+         startCoroutine()
          //startCoroutineUsingMoreConvenientErrorHandling()
-         startCoroutineWithProgress()
+         //startCoroutineWithProgress()
       }
       btnOpenGithubActivity.setOnClickListener {
          startActivity(Intent(this, GitHubActivity::class.java))
@@ -105,6 +105,10 @@ class MainActivity : AppCompatActivity(), OrangeView {
       btnOrangeTestMemoryLeaks.text = text
    }
 
+   override fun onStop() {
+      super.onStop()
+      orangePresenter.onStop()
+   }
 }
 
 @DebugLog
@@ -126,6 +130,6 @@ private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
 
 @DebugLog
 private fun processText(input: String): String {
-   Thread.sleep(2000)
+   Thread.sleep(10000)
    return "Processed $input"
 }
