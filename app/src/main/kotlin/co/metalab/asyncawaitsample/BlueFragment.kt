@@ -30,7 +30,7 @@ class BlueFragment : Fragment() {
    private fun testMemoryLeaks() = async {
       btnTest.text = "Loading fragment task"
       btnTest.text = await {
-         SystemClock.sleep(50000)
+         SystemClock.sleep(10000)
          Log.d("BlueFragment", "Task is done")
          "Fragment task done"
       }
@@ -38,6 +38,10 @@ class BlueFragment : Fragment() {
    }
 
 
+   override fun onDestroy() {
+      super.onDestroy()
+      async.cancelAll()
+   }
 }
 
 

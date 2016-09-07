@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity(), OrangeView {
    private fun startVeryLongTask() = async {
       btnTestMemoryLeaks.text = "Press Back, watch leaks..."
       btnTestMemoryLeaks.text = await {
-         SystemClock.sleep(10000)
+         SystemClock.sleep(1000)
          Log.d("MainActivity", "Task is done")
          "Done. So, did you see leaks?"
       }
@@ -108,13 +108,14 @@ class MainActivity : AppCompatActivity(), OrangeView {
    override fun onStop() {
       super.onStop()
       orangePresenter.onStop()
+      async.cancelAll()
    }
 }
 
 @DebugLog
 private fun loadText(): String {
    Thread.sleep(1000)
-   if (1 == 1) throw RuntimeException("You are in the wrong place")
+   //if (1 == 1) throw RuntimeException("You are in the wrong place")
    return "Loaded Text"
 }
 

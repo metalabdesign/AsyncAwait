@@ -8,8 +8,11 @@ import android.os.Message
 import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 private val executor = Executors.newSingleThreadExecutor()
+
+private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncController>>>()
 
 /**
  * Run asynchronous computations based on [c] coroutine parameter.
@@ -25,7 +28,9 @@ private val executor = Executors.newSingleThreadExecutor()
  * @return AsyncController object allowing to define optional `onError` handler
  */
 fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return async(c, AsyncController(disposableTarget = this))
+   val controller = AsyncController()
+   trackCoroutineForCancelPurpose(controller)
+   return async(c, controller)
 }
 
 /**
@@ -43,7 +48,9 @@ fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncContr
  * @return AsyncController object allowing to define optional `onError` handler
  */
 fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return async(c, AsyncController(activity = this))
+   val controller = AsyncController(activity = this)
+   trackCoroutineForCancelPurpose(controller)
+   return async(c, controller)
 }
 
 /**
@@ -62,7 +69,9 @@ fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): Async
  * @return AsyncController object allowing to define optional `onError` handler
  */
 fun Fragment.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   return async(c, AsyncController(fragment = this))
+   val controller = AsyncController(fragment = this)
+   trackCoroutineForCancelPurpose(controller)
+   return async(c, controller)
 }
 
 internal fun async(c: AsyncController.() -> Continuation<Unit>,
@@ -75,30 +84,15 @@ typealias ErrorHandler = (Exception) -> Unit
 
 typealias ProgressHandler<P> = (P) -> Unit
 
-private val targetsMap = HashMap<Any, AsyncController>()
-
-fun Any.stopAsyncAwaitTasks() {
-   targetsMap.remove(this)
-}
 /**
  * Controls coroutine execution and thread scheduling
  */
 @AllowSuspendExtensions
-class AsyncController(private var activity: Activity? = null,
-                      private val fragment: Fragment? = null,
-                      private val disposableTarget : Any? = null) : ActivityLifecycleCallbacks {
-
-   init {
-      fragment?.apply {
-         this@AsyncController.activity = this.activity
-      }
-      activity?.apply {
-         application.registerActivityLifecycleCallbacks(this@AsyncController)
-      }
-      disposableTarget?.apply { targetsMap[this] = this@AsyncController }
-   }
+class AsyncController(private val activity: Activity? = null,
+                      private val fragment: Fragment? = null) {
 
    private var errorHandler: ErrorHandler? = null
+
    private val uiHandler = object : Handler(Looper.getMainLooper()) {
       override fun handleMessage(msg: Message) {
          if (isAlive()) {
@@ -108,7 +102,7 @@ class AsyncController(private var activity: Activity? = null,
       }
    }
 
-   private var machineRefHolder: Continuation<*>? = null
+   private var currentTask: AwaitTask<*>? = null
 
    /**
     * Non-blocking suspension point. Coroutine execution will proceed after [f] is finished
@@ -121,13 +115,8 @@ class AsyncController(private var activity: Activity? = null,
     * in background thread
     */
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
-      machineRefHolder = machine //Hold reference to protect it from GC
-      val task = if (activity != null || disposableTarget != null) {
-         WeakAwaitTask(f, WeakReference(this), WeakReference(machine))
-      } else {
-         StrongAwaitTask(f, this, machine)
-      }
-      executor.submit(task)
+      currentTask = AwaitTask(f, this, machine)
+      executor.submit(currentTask)
    }
 
    /**
@@ -166,6 +155,10 @@ class AsyncController(private var activity: Activity? = null,
       this.errorHandler = errorHandler
    }
 
+   internal fun cancel() {
+      currentTask?.cancel()
+   }
+
    internal fun <V> handleException(e: Exception, machine: Continuation<V>) {
       runOnUi { errorHandler?.invoke(e) ?: machine.resumeWithException(e) }
    }
@@ -181,44 +174,56 @@ class AsyncController(private var activity: Activity? = null,
       uiHandler.obtainMessage(0, block).sendToTarget()
    }
 
-   override fun onActivityDestroyed(destroyedActivity: Activity) {
-      if (destroyedActivity != activity) return
-
-      activity?.apply {
-         application.unregisterActivityLifecycleCallbacks(this@AsyncController)
-      }
-   }
-
 }
 
-private class StrongAwaitTask<V>(val f: () -> V,
-                                 val asyncController: AsyncController,
-                                 val machine: Continuation<V>) : Runnable {
-   override fun run() {
-      try {
-         val value = f()
-         asyncController.runOnUi { machine.resume(value) }
-      } catch (e: Exception) {
-         asyncController.handleException(e, machine)
-      }
+private fun Any.trackCoroutineForCancelPurpose(controller: AsyncController) {
+   val list = coroutines.getOrElse(this) {
+      val newList = ArrayList<WeakReference<AsyncController>>()
+      coroutines[this] = newList
+      newList
    }
 
+   list.add(WeakReference(controller))
 }
 
-private class WeakAwaitTask<V>(val f: () -> V,
-                               val asyncControllerWeakRef: WeakReference<AsyncController>,
-                               val machineWeakRef: WeakReference<Continuation<V>>) : Runnable {
+val Any.async: Async
+   get() = Async(this)
+
+class Async(private val asyncTarget: Any) {
+   fun cancelAll() {
+      coroutines[asyncTarget]?.forEach {
+         it.get()?.cancel()
+      }
+   }
+}
+
+private class AwaitTask<V>(val f: () -> V,
+                           @Volatile
+                           var asyncController: AsyncController?,
+                           @Volatile
+                           var machine: Continuation<V>?) : Runnable {
+
+   private val isCancelled = AtomicBoolean(false)
+
+   internal fun cancel() {
+      asyncController = null
+      machine = null
+      isCancelled.set(true)
+   }
+
    override fun run() {
-      if (asyncControllerWeakRef.get() == null) return
+      // Finish task immediately if it was cancelled while being in queue
+      if (isCancelled.get()) return
 
       try {
          val value = f()
-         machineWeakRef.get()?.apply {
-            asyncControllerWeakRef.get()?.runOnUi { this.resume(value) }
+         machine?.apply {
+            asyncController?.runOnUi { this.resume(value) }
          }
+
       } catch (e: Exception) {
-         machineWeakRef.get()?.apply {
-            asyncControllerWeakRef.get()?.handleException(e, this)
+         machine?.apply {
+            asyncController?.handleException(e, this)
          }
       }
    }

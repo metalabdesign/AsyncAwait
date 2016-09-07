@@ -3,7 +3,6 @@ package co.metalab.asyncawaitsample
 import android.os.SystemClock
 import android.util.Log
 import co.metalab.asyncawait.async
-import co.metalab.asyncawait.stopAsyncAwaitTasks
 
 class OrangePresenter(val orangeView: OrangeView) {
 
@@ -19,7 +18,7 @@ class OrangePresenter(val orangeView: OrangeView) {
    }
 
    fun onStop() {
-      stopAsyncAwaitTasks()
+      async.cancelAll()
    }
 
 }
