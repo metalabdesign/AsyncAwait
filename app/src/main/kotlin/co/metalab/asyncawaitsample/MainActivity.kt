@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity(), OrangeView {
 
 @DebugLog
 private fun loadText(): String {
-   Thread.sleep(1000)
+   SystemClock.sleep(1000)
    //if (1 == 1) throw RuntimeException("You are in the wrong place")
    return "Loaded Text"
 }
@@ -123,7 +123,7 @@ private fun loadText(): String {
 private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
    for (i in 1..10) {
       handleProgress(i * 100 / 10) // in %
-      Thread.sleep(300)
+      SystemClock.sleep(300)
    }
    //if (1 == 1) throw RuntimeException("You are in the wrong place")
    return "Loaded Text"
@@ -131,6 +131,6 @@ private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
 
 @DebugLog
 private fun processText(input: String): String {
-   Thread.sleep(10000)
+   SystemClock.sleep(10000)
    return "Processed $input"
 }
