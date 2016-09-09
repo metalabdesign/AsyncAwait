@@ -5,7 +5,8 @@
    <string name="default_user_name">pilgr</string>
    <string name="hint_github_username">github username</string>
    <string name="btnStart">Start</string>
-   <string name="btn_test_memory_leaks">Test activity memory leaks</string>
-   <string name="btn_fragment_blue_test_memory_leaks">Test fragment memory leaks</string>
-   <string name="btn_orange_test_memory_leaks">Test generic memory leaks</string>
+   <string name="btn_test_memory_leaks">Check activity memory leaks</string>
+   <string name="btn_test_memory_leaks_with_progress">Check await with progress</string>
+   <string name="btn_fragment_blue_test_memory_leaks">Check fragment memory leaks</string>
+   <string name="btn_orange_test_memory_leaks">Check generic memory leaks</string>
 </resources>

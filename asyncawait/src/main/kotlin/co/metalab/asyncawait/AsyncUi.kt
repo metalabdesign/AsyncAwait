@@ -102,7 +102,7 @@ class AsyncController(private val target: Any) {
       }
    }
 
-   private var currentTask: AwaitTask<*>? = null
+   private var currentTask: CancelableTask<*>? = null
 
    /**
     * Non-blocking suspension point. Coroutine execution will proceed after [f] is finished
@@ -134,16 +134,8 @@ class AsyncController(private val target: Any) {
     */
    suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
                                         onProgress: ProgressHandler<P>, machine: Continuation<V>) {
-      target.getExecutorService().submit {
-         try {
-            val value = f { progressValue ->
-               runOnUi { onProgress(progressValue) }
-            }
-            runOnUi { machine.resume(value) }
-         } catch (e: Exception) {
-            handleException(e, machine)
-         }
-      }
+      currentTask = AwaitWithProgressTask(f, onProgress, this, machine)
+      target.getExecutorService().submit(currentTask)
    }
 
    /**
@@ -207,18 +199,17 @@ class Async(private val asyncTarget: Any) {
    }
 }
 
-private class AwaitTask<V>(val f: () -> V,
-                           @Volatile
-                           var asyncController: AsyncController?,
-                           @Volatile
-                           var machine: Continuation<V>?) : Runnable {
+private abstract class CancelableTask<V>(@Volatile
+                                         var asyncController: AsyncController?,
+                                         @Volatile
+                                         var machine: Continuation<V>?) : Runnable {
 
    private val isCancelled = AtomicBoolean(false)
 
-   internal fun cancel() {
+   open internal fun cancel() {
+      isCancelled.set(true)
       asyncController = null
       machine = null
-      isCancelled.set(true)
    }
 
    override fun run() {
@@ -226,7 +217,7 @@ private class AwaitTask<V>(val f: () -> V,
       if (isCancelled.get()) return
 
       try {
-         val value = f()
+         val value = obtainValue()
          if (isCancelled.get()) return
 
          machine?.apply {
@@ -240,6 +231,39 @@ private class AwaitTask<V>(val f: () -> V,
             asyncController?.handleException(e, this)
          }
       }
+   }
+
+   abstract fun obtainValue(): V
+}
+
+private class AwaitTask<V>(val f: () -> V,
+                           asyncController: AsyncController,
+                           machine: Continuation<V>)
+: CancelableTask<V>(asyncController, machine) {
+
+   override fun obtainValue(): V {
+      return f()
+   }
+}
+
+private class AwaitWithProgressTask<P, V>(val f: (ProgressHandler<P>) -> V,
+                                          @Volatile
+                                          var onProgress: ProgressHandler<P>?,
+                                          asyncController: AsyncController,
+                                          machine: Continuation<V>)
+: CancelableTask<V>(asyncController, machine) {
+
+   override fun obtainValue(): V {
+      return f { progressValue ->
+         onProgress?.apply {
+            asyncController?.runOnUi { this(progressValue) }
+         }
+      }
+   }
+
+   override fun cancel() {
+      super.cancel()
+      onProgress = null
    }
 
 }

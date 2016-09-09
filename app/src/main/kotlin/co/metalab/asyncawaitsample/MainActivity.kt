@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity(), OrangeView {
       }
       btnTestMemoryLeaks.setOnClickListener {
          startVeryLongTask()
-         System.gc()
+      }
+      btnTestMemoryLeaksWithProgress.setOnClickListener {
+         startVeryLongTaskWithProgress()
       }
       orangePresenter = OrangePresenter(this)
       btnOrangeTestMemoryLeaks.setOnClickListener {
@@ -99,6 +101,26 @@ class MainActivity : AppCompatActivity(), OrangeView {
          "Done. So, did you see leaks?"
       }
       Log.d("MainActivity", "Result delivered in UI thread")
+   }
+
+   private fun startVeryLongTaskWithProgress() = async {
+      btnTestMemoryLeaksWithProgress.text = "Press Back, watch leaks..."
+      progressBar.isIndeterminate = false
+      progressBar.progress = 0
+      progressBar.visibility = View.VISIBLE
+      btnTestMemoryLeaksWithProgress.text = awaitWithProgress<String, Int>({
+         for (i in 1..10) {
+            SystemClock.sleep(1000)
+            it(i * 100 / 10)
+         }
+         Log.d("MainActivity", "Task is done")
+         "Done. So, did you see leaks?"
+      }, {
+         progressBar.progress = it
+         Log.d("MainActivity", "Progress value $it")
+      })
+      progressBar.visibility = View.INVISIBLE
+      Log.d("MainActivity", "Result (with progress) delivered in UI thread")
    }
 
    override fun setOrangeButtonText(text: String) {

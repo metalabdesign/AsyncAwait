@@ -50,6 +50,16 @@
       android:layout_marginRight="16dp"
       android:text="@string/btn_test_memory_leaks"/>
 
+   <Button
+      android:id="@+id/btnTestMemoryLeaksWithProgress"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginBottom="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginRight="16dp"
+      android:text="@string/btn_test_memory_leaks_with_progress"/>
+
    <fragment
       android:id="@+id/blue_fragment"
       android:name="co.metalab.asyncawaitsample.BlueFragment"
