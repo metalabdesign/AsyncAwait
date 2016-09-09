@@ -7,10 +7,11 @@ import android.os.Looper
 import android.os.Message
 import java.lang.ref.WeakReference
 import java.util.*
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
-private val executor = Executors.newSingleThreadExecutor()
+private val executors = WeakHashMap<Any, ExecutorService>()
 
 private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncController>>>()
 
@@ -28,8 +29,8 @@ private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncControlle
  * @return AsyncController object allowing to define optional `onError` handler
  */
 fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   val controller = AsyncController()
-   trackCoroutineForCancelPurpose(controller)
+   val controller = AsyncController(this)
+   keepCoroutineForCancelPurpose(controller)
    return async(c, controller)
 }
 
@@ -48,8 +49,8 @@ fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncContr
  * @return AsyncController object allowing to define optional `onError` handler
  */
 fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   val controller = AsyncController(activity = this)
-   trackCoroutineForCancelPurpose(controller)
+   val controller = AsyncController(this)
+   keepCoroutineForCancelPurpose(controller)
    return async(c, controller)
 }
 
@@ -69,8 +70,8 @@ fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): Async
  * @return AsyncController object allowing to define optional `onError` handler
  */
 fun Fragment.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
-   val controller = AsyncController(fragment = this)
-   trackCoroutineForCancelPurpose(controller)
+   val controller = AsyncController(this)
+   keepCoroutineForCancelPurpose(controller)
    return async(c, controller)
 }
 
@@ -88,8 +89,7 @@ typealias ProgressHandler<P> = (P) -> Unit
  * Controls coroutine execution and thread scheduling
  */
 @AllowSuspendExtensions
-class AsyncController(private val activity: Activity? = null,
-                      private val fragment: Fragment? = null) {
+class AsyncController(private val target: Any) {
 
    private var errorHandler: ErrorHandler? = null
 
@@ -116,7 +116,7 @@ class AsyncController(private val activity: Activity? = null,
     */
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
       currentTask = AwaitTask(f, this, machine)
-      executor.submit(currentTask)
+      target.getExecutorService().submit(currentTask)
    }
 
    /**
@@ -134,7 +134,7 @@ class AsyncController(private val activity: Activity? = null,
     */
    suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
                                         onProgress: ProgressHandler<P>, machine: Continuation<V>) {
-      executor.submit {
+      target.getExecutorService().submit {
          try {
             val value = f { progressValue ->
                runOnUi { onProgress(progressValue) }
@@ -164,10 +164,11 @@ class AsyncController(private val activity: Activity? = null,
    }
 
    private fun isAlive(): Boolean {
-      activity?.apply { return !isFinishing }
-      fragment?.apply { return activity != null && !isDetached }
-
-      return true
+      return when (target) {
+         is Activity -> return !target.isFinishing
+         is Fragment -> return target.activity != null && !target.isDetached
+         else -> true
+      }
    }
 
    internal fun runOnUi(block: () -> Unit) {
@@ -176,7 +177,7 @@ class AsyncController(private val activity: Activity? = null,
 
 }
 
-private fun Any.trackCoroutineForCancelPurpose(controller: AsyncController) {
+private fun Any.keepCoroutineForCancelPurpose(controller: AsyncController) {
    val list = coroutines.getOrElse(this) {
       val newList = ArrayList<WeakReference<AsyncController>>()
       coroutines[this] = newList
@@ -185,6 +186,15 @@ private fun Any.trackCoroutineForCancelPurpose(controller: AsyncController) {
 
    list.add(WeakReference(controller))
 }
+
+private fun Any.getExecutorService(): ExecutorService {
+   return executors.getOrElse(this) {
+      val newExecutor = Executors.newSingleThreadExecutor()
+      executors[this] = newExecutor
+      newExecutor
+   }
+}
+
 
 val Any.async: Async
    get() = Async(this)
