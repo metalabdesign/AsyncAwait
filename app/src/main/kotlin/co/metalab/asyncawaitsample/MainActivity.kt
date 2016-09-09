@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity(), OrangeView {
    private fun startVeryLongTask() = async {
       btnTestMemoryLeaks.text = "Press Back, watch leaks..."
       btnTestMemoryLeaks.text = await {
-         SystemClock.sleep(1000)
+         SystemClock.sleep(10000)
          Log.d("MainActivity", "Task is done")
          "Done. So, did you see leaks?"
       }
@@ -105,8 +105,8 @@ class MainActivity : AppCompatActivity(), OrangeView {
       btnOrangeTestMemoryLeaks.text = text
    }
 
-   override fun onStop() {
-      super.onStop()
+   override fun onDestroy() {
+      super.onDestroy()
       orangePresenter.onStop()
       async.cancelAll()
    }
