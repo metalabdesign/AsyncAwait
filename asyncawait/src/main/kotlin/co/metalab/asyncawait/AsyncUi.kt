@@ -217,11 +217,15 @@ private class AwaitTask<V>(val f: () -> V,
 
       try {
          val value = f()
+         if (isCancelled.get()) return
+
          machine?.apply {
             asyncController?.runOnUi { this.resume(value) }
          }
 
       } catch (e: Exception) {
+         if (isCancelled.get()) return
+
          machine?.apply {
             asyncController?.handleException(e, this)
          }
