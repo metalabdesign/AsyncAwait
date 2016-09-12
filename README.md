@@ -105,7 +105,7 @@ The library has `Activity.async` and `Fragment.async` extension functions to pro
 ### Avoid memory leaks
 
 Long running background code referencing any view/context may produce memory leaks. To avoid such memory leaks, call `async.cancelAll()` when all running coroutines referencing current object should be interrupted, like
-```
+```Kotlin
 override fun onDestroy() {
       super.onDestroy()
       async.cancelAll()
