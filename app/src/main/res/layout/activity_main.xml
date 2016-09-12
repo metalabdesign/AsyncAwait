@@ -4,18 +4,18 @@
    xmlns:tools="http://schemas.android.com/tools"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
+   android:orientation="vertical"
    android:paddingBottom="@dimen/activity_vertical_margin"
    android:paddingLeft="@dimen/activity_horizontal_margin"
    android:paddingRight="@dimen/activity_horizontal_margin"
-   android:orientation="vertical"
    tools:context="co.metalab.asyncawaitsample.MainActivity">
 
    <ProgressBar
       android:id="@+id/progressBar"
       style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-      android:indeterminate="true"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:indeterminate="true"
       android:visibility="invisible"/>
 
    <TextView
@@ -41,10 +41,60 @@
       android:layout_weight="1"/>
 
    <Button
+      android:id="@+id/btnTestMemoryLeaks"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginBottom="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginRight="16dp"
+      android:text="@string/btn_test_memory_leaks"/>
+
+   <Button
+      android:id="@+id/btnTestMemoryLeaksWithProgress"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginBottom="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginRight="16dp"
+      android:text="@string/btn_test_memory_leaks_with_progress"/>
+
+   <fragment
+      android:id="@+id/blue_fragment"
+      android:name="co.metalab.asyncawaitsample.BlueFragment"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:layout_marginTop="16dp"
+      tools:layout="@layout/fragment_blue"/>
+
+   <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:background="@android:color/holo_orange_light"
+      android:paddingBottom="16dp"
+      android:paddingTop="16dp">
+
+      <Button
+         android:id="@+id/btnOrangeTestMemoryLeaks"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginLeft="8dp"
+         android:layout_marginRight="8dp"
+         android:text="@string/btn_orange_test_memory_leaks"/>
+
+   </LinearLayout>
+
+   <Button
       android:id="@+id/btnOpenGithubActivity"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_gravity="center_horizontal"
-      android:layout_marginTop="32dp"
+      android:layout_marginTop="16dp"
       android:text="@string/btn_open_github_activity"/>
 </LinearLayout>

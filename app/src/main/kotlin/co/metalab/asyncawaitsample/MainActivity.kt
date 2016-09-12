@@ -1,26 +1,40 @@
 package co.metalab.asyncawaitsample
 
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.SystemClock
+import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
-import co.metalab.asyncawait.async
 import co.metalab.asyncawait.ProgressHandler
+import co.metalab.asyncawait.async
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), OrangeView {
+
+   private lateinit var orangePresenter: OrangePresenter
 
    override fun onCreate(savedInstanceState: Bundle?) {
       super.onCreate(savedInstanceState)
       setContentView(R.layout.activity_main)
       btnStart.setOnClickListener {
-         //startCoroutine()
+         startCoroutine()
          //startCoroutineUsingMoreConvenientErrorHandling()
-         startCoroutineWithProgress()
+         //startCoroutineWithProgress()
       }
       btnOpenGithubActivity.setOnClickListener {
          startActivity(Intent(this, GitHubActivity::class.java))
+      }
+      btnTestMemoryLeaks.setOnClickListener {
+         startVeryLongTask()
+      }
+      btnTestMemoryLeaksWithProgress.setOnClickListener {
+         startVeryLongTaskWithProgress()
+      }
+      orangePresenter = OrangePresenter(this)
+      btnOrangeTestMemoryLeaks.setOnClickListener {
+         orangePresenter.startLongRunningOrangeTask()
       }
    }
 
@@ -78,12 +92,52 @@ class MainActivity : AppCompatActivity() {
       progressBar.visibility = View.INVISIBLE
       btnStart.isEnabled = true
    }
+
+   private fun startVeryLongTask() = async {
+      btnTestMemoryLeaks.text = "Press Back, watch leaks..."
+      btnTestMemoryLeaks.text = await {
+         SystemClock.sleep(10000)
+         Log.d("MainActivity", "Task is done")
+         "Done. So, did you see leaks?"
+      }
+      Log.d("MainActivity", "Result delivered in UI thread")
+   }
+
+   private fun startVeryLongTaskWithProgress() = async {
+      btnTestMemoryLeaksWithProgress.text = "Press Back, watch leaks..."
+      progressBar.isIndeterminate = false
+      progressBar.progress = 0
+      progressBar.visibility = View.VISIBLE
+      btnTestMemoryLeaksWithProgress.text = awaitWithProgress<String, Int>({
+         for (i in 1..10) {
+            SystemClock.sleep(1000)
+            it(i * 100 / 10)
+         }
+         Log.d("MainActivity", "Task is done")
+         "Done. So, did you see leaks?"
+      }, {
+         progressBar.progress = it
+         Log.d("MainActivity", "Progress value $it")
+      })
+      progressBar.visibility = View.INVISIBLE
+      Log.d("MainActivity", "Result (with progress) delivered in UI thread")
+   }
+
+   override fun setOrangeButtonText(text: String) {
+      btnOrangeTestMemoryLeaks.text = text
+   }
+
+   override fun onDestroy() {
+      super.onDestroy()
+      orangePresenter.onStop()
+      async.cancelAll()
+   }
 }
 
 @DebugLog
 private fun loadText(): String {
-   Thread.sleep(1000)
-   if (1 == 1) throw RuntimeException("You are in the wrong place")
+   SystemClock.sleep(1000)
+   //if (1 == 1) throw RuntimeException("You are in the wrong place")
    return "Loaded Text"
 }
 
@@ -91,7 +145,7 @@ private fun loadText(): String {
 private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
    for (i in 1..10) {
       handleProgress(i * 100 / 10) // in %
-      Thread.sleep(300)
+      SystemClock.sleep(300)
    }
    //if (1 == 1) throw RuntimeException("You are in the wrong place")
    return "Loaded Text"
@@ -99,6 +153,6 @@ private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
 
 @DebugLog
 private fun processText(input: String): String {
-   Thread.sleep(2000)
+   SystemClock.sleep(10000)
    return "Processed $input"
 }

@@ -102,6 +102,17 @@ async {
 
 The library has `Activity.async` and `Fragment.async` extension functions to produce more safe code. So when using `async` inside Activity/Fragment, coroutine won't be resumed if `Activity` is in finishing state or `Fragment` is detached.
 
+### Avoid memory leaks
+
+Long running background code referencing any view/context may produce memory leaks. To avoid such memory leaks, call `async.cancelAll()` when all running coroutines referencing current object should be interrupted, like
+```Kotlin
+override fun onDestroy() {
+      super.onDestroy()
+      async.cancelAll()
+}
+```
+The `async` is an extension property for `Any` type. So calling `[this.]async.cancelAll` intrerrupts only coroutines started by `[this.]async {}` function.
+
 ### Common extensions
 
 The library has a convenient API to work with Retrofit and rxJava.
