@@ -92,6 +92,7 @@ typealias ProgressHandler<P> = (P) -> Unit
 class AsyncController(private val target: Any) {
 
    private var errorHandler: ErrorHandler? = null
+   private var finallyHandler: (() -> Unit)? = null
 
    private val uiHandler = object : Handler(Looper.getMainLooper()) {
       override fun handleMessage(msg: Message) {
@@ -102,7 +103,7 @@ class AsyncController(private val target: Any) {
       }
    }
 
-   private var currentTask: CancelableTask<*>? = null
+   internal var currentTask: CancelableTask<*>? = null
 
    /**
     * Non-blocking suspension point. Coroutine execution will proceed after [f] is finished
@@ -143,8 +144,13 @@ class AsyncController(private val target: Any) {
     * will be delivered to this handler in UI thread. This handler has more priority than
     * try/catch blocks around [await].
     */
-   fun onError(errorHandler: ErrorHandler) {
+   fun onError(errorHandler: ErrorHandler): AsyncController {
       this.errorHandler = errorHandler
+      return this
+   }
+
+   fun finally(finallyHandler: () -> Unit) {
+      this.finallyHandler = finallyHandler
    }
 
    internal fun cancel() {
@@ -152,8 +158,20 @@ class AsyncController(private val target: Any) {
    }
 
    internal fun <V> handleException(e: Exception, machine: Continuation<V>) {
-      runOnUi { errorHandler?.invoke(e) ?: machine.resumeWithException(e) }
+      runOnUi {
+         currentTask = null
+         errorHandler?.invoke(e) ?: machine.resumeWithException(e)
+         applyFinallyBlock()
+      }
    }
+
+   internal fun applyFinallyBlock() {
+      if (isLastCoroutineResumeExecuted()) {
+         finallyHandler?.invoke()
+      }
+   }
+
+   private fun isLastCoroutineResumeExecuted() = currentTask == null
 
    private fun isAlive(): Boolean {
       return when (target) {
@@ -199,10 +217,10 @@ class Async(private val asyncTarget: Any) {
    }
 }
 
-private abstract class CancelableTask<V>(@Volatile
-                                         var asyncController: AsyncController?,
-                                         @Volatile
-                                         var machine: Continuation<V>?) : Runnable {
+internal abstract class CancelableTask<V>(@Volatile
+                                          var asyncController: AsyncController?,
+                                          @Volatile
+                                          var machine: Continuation<V>?) : Runnable {
 
    private val isCancelled = AtomicBoolean(false)
 
@@ -219,9 +237,12 @@ private abstract class CancelableTask<V>(@Volatile
       try {
          val value = obtainValue()
          if (isCancelled.get()) return
-
-         machine?.apply {
-            asyncController?.runOnUi { this.resume(value) }
+         asyncController?.apply {
+            runOnUi {
+               currentTask = null
+               machine?.resume(value)
+               applyFinallyBlock()
+            }
          }
 
       } catch (e: Exception) {

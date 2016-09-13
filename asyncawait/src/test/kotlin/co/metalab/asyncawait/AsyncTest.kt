@@ -3,13 +3,11 @@ package co.metalab.asyncawait
 import android.app.Activity
 import android.app.Application
 import android.app.Fragment
-import android.os.Handler
 import android.os.Looper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
-import java.util.concurrent.TimeoutException
 import kotlin.test.*
 
 @RunWith(RobolectricTestRunner::class)

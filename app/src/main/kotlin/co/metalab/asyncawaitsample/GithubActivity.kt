@@ -49,15 +49,15 @@ class GitHubActivity : AppCompatActivity() {
          showRepos(reposList)
       }
 
-      hideLoadingUi()
+      txtStatus.text = "Done."
    }.onError {
-      progressBar.visibility = View.INVISIBLE
-      btnGetRepos.isEnabled = true
-
       val errorMessage = getErrorMessage(it)
 
       txtStatus.text = errorMessage
       Log.e(TAG, errorMessage, it)
+   }.finally {
+      progressBar.visibility = View.INVISIBLE
+      btnGetRepos.isEnabled = true
    }
 
    private fun showLoadingUi() {
@@ -66,12 +66,6 @@ class GitHubActivity : AppCompatActivity() {
       progressBar.visibility = View.VISIBLE
       btnGetRepos.isEnabled = false
       txtStatus.text = "Loading repos list..."
-   }
-
-   private fun hideLoadingUi() {
-      progressBar.visibility = View.INVISIBLE
-      btnGetRepos.isEnabled = true
-      txtStatus.text = "Done."
    }
 
    private fun getErrorMessage(it: Exception): String {
