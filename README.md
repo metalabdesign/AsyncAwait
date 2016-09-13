@@ -118,11 +118,6 @@ The `async` is an extension property for `Any` type. So calling `[this.]async.ca
 The library has a convenient API to work with Retrofit and rxJava.
 
 #### For Retorift
-* `await(retrofit2.Call)`
-```Kotlin
-reposResponse = await(github.listRepos(userName))
-```
-
 * `awaitSuccessful(retrofit2.Call)`
 
 Returns `Response<V>.body()` if successful, or throws `RetrofitHttpError` with error response otherwise.  
