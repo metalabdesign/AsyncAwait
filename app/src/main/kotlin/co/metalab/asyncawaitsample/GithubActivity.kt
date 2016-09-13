@@ -33,6 +33,11 @@ class GitHubActivity : AppCompatActivity() {
       btnGetRepos.setOnClickListener { refreshRepos() }
    }
 
+   override fun onDestroy() {
+      super.onDestroy()
+      async.cancelAll()
+   }
+
    private fun refreshRepos() = async {
       showLoadingUi()
 
