@@ -105,7 +105,7 @@ class AsyncController(private val target: Any) {
 
    internal var currentTask: CancelableTask<*>? = null
 
-   private var uiThreadStackTrace: Array<out StackTraceElement>? = null
+   private lateinit var uiThreadStackTrace: Array<out StackTraceElement>
 
    /**
     * Non-blocking suspension point. Coroutine execution will proceed after [f] is finished
@@ -118,7 +118,7 @@ class AsyncController(private val target: Any) {
     * in background thread
     */
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
-      uiThreadStackTrace = Thread.currentThread().stackTrace
+      keepAwaitCallerStackTrace()
       currentTask = AwaitTask(f, this, machine)
       target.getExecutorService().submit(currentTask)
    }
@@ -138,7 +138,7 @@ class AsyncController(private val target: Any) {
     */
    suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
                                         onProgress: ProgressHandler<P>, machine: Continuation<V>) {
-      uiThreadStackTrace = Thread.currentThread().stackTrace
+      keepAwaitCallerStackTrace()
       currentTask = AwaitWithProgressTask(f, onProgress, this, machine)
       target.getExecutorService().submit(currentTask)
    }
@@ -164,7 +164,7 @@ class AsyncController(private val target: Any) {
    internal fun <V> handleException(e: Exception, machine: Continuation<V>) {
       runOnUi {
          currentTask = null
-         val asyncException = AsyncException(e).apply { stackTrace = uiThreadStackTrace }
+         val asyncException = AsyncException(e, refineUiThreadStackTrace())
          errorHandler?.invoke(asyncException) ?: machine.resumeWithException(asyncException)
          applyFinallyBlock()
       }
@@ -188,6 +188,17 @@ class AsyncController(private val target: Any) {
 
    internal fun runOnUi(block: () -> Unit) {
       uiHandler.obtainMessage(0, block).sendToTarget()
+   }
+
+   private fun keepAwaitCallerStackTrace() {
+      uiThreadStackTrace = Thread.currentThread().stackTrace
+   }
+
+   private fun refineUiThreadStackTrace(): Array<out StackTraceElement> {
+      val dropTopStackTraceLines = 2 // Remove utility lines from the top of the stack trace
+      return Array(uiThreadStackTrace.size - dropTopStackTraceLines) {
+         uiThreadStackTrace[dropTopStackTraceLines + it]
+      }
    }
 
 }
@@ -294,4 +305,8 @@ private class AwaitWithProgressTask<P, V>(val f: (ProgressHandler<P>) -> V,
 
 }
 
-class AsyncException(e: Exception) : RuntimeException(e)
+class AsyncException(e: Exception, stackTrace: Array<out StackTraceElement>) : RuntimeException(e) {
+   init {
+      this.stackTrace = stackTrace
+   }
+}

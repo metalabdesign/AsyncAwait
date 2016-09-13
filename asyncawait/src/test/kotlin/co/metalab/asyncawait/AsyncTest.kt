@@ -94,6 +94,23 @@ class AsyncTest {
    }
 
    @Test
+   fun `Thrown exceptions should be wrapped with AsyncException`() {
+      var done = false
+      async {
+         await {
+            throw RuntimeException("Catch me!")
+         }
+      }.onError { e ->
+         assertTrue(e is AsyncException)
+         assertTrue(e.cause is RuntimeException)
+         assertEquals("co.metalab.asyncawait.AsyncTest\$Thrown exceptions should be wrapped with AsyncException$1", e.stackTrace[1].className)
+         assertEquals("doResume", e.stackTrace[1].methodName)
+         done = true
+      }
+      loopUntil { done }
+   }
+
+   @Test
    fun `Catch block is ignored when error block is specified`() {
       var done = false
       async {
