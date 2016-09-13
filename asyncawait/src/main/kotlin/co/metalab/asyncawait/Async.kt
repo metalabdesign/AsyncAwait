@@ -105,6 +105,8 @@ class AsyncController(private val target: Any) {
 
    internal var currentTask: CancelableTask<*>? = null
 
+   private var uiThreadStackTrace: Array<out StackTraceElement>? = null
+
    /**
     * Non-blocking suspension point. Coroutine execution will proceed after [f] is finished
     * in background thread.
@@ -116,6 +118,7 @@ class AsyncController(private val target: Any) {
     * in background thread
     */
    suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
+      uiThreadStackTrace = Thread.currentThread().stackTrace
       currentTask = AwaitTask(f, this, machine)
       target.getExecutorService().submit(currentTask)
    }
@@ -135,6 +138,7 @@ class AsyncController(private val target: Any) {
     */
    suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
                                         onProgress: ProgressHandler<P>, machine: Continuation<V>) {
+      uiThreadStackTrace = Thread.currentThread().stackTrace
       currentTask = AwaitWithProgressTask(f, onProgress, this, machine)
       target.getExecutorService().submit(currentTask)
    }
@@ -160,7 +164,8 @@ class AsyncController(private val target: Any) {
    internal fun <V> handleException(e: Exception, machine: Continuation<V>) {
       runOnUi {
          currentTask = null
-         errorHandler?.invoke(e) ?: machine.resumeWithException(e)
+         val asyncException = AsyncException(e).apply { stackTrace = uiThreadStackTrace }
+         errorHandler?.invoke(asyncException) ?: machine.resumeWithException(asyncException)
          applyFinallyBlock()
       }
    }
@@ -288,3 +293,5 @@ private class AwaitWithProgressTask<P, V>(val f: (ProgressHandler<P>) -> V,
    }
 
 }
+
+class AsyncException(e: Exception) : RuntimeException(e)
