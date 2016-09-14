@@ -153,6 +153,10 @@ class AsyncController(private val target: Any) {
       return this
    }
 
+   /**
+    * Optional handler to be invoked after successful coroutine execution
+    * or after handling exception in [onError].
+    */
    fun finally(finallyHandler: () -> Unit) {
       this.finallyHandler = finallyHandler
    }
