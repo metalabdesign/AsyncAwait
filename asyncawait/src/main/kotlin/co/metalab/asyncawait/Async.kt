@@ -26,7 +26,7 @@ private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncControlle
  *
  * @param c a coroutine representing asynchronous computations
  *
- * @return AsyncController object allowing to define optional `onError` handler
+ * @return AsyncController object allowing to define optional [onError] or [finally] handlers
  */
 fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
    val controller = AsyncController(this)
@@ -144,9 +144,10 @@ class AsyncController(private val target: Any) {
    }
 
    /**
-    * Optional error handler. Any exception happening in background thread
-    * will be delivered to this handler in UI thread. This handler has more priority than
-    * try/catch blocks around [await].
+    * Optional error handler. Exceptions happening in a background thread and not caught within
+    * try/catch in coroutine body will be delivered to this handler in UI thread.
+    *
+    *  @return this AsyncController object allowing to define optional [finally] handlers
     */
    fun onError(errorHandler: ErrorHandler): AsyncController {
       this.errorHandler = errorHandler
