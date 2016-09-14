@@ -100,6 +100,19 @@ async {
 
 Unhandled exceptions and exception delivered in `onError` wrapped by `AsyncException` with convenient stack trace to the place where `await` been called originally in UI thread 
 
+### `finally` execution
+`finally` always executed after calling `onError` or when the coroutine finished successfully.
+```Kotlin
+   async {
+      // Show progress
+      await { }
+   }.onError {
+      // Handle exception
+   }.finally {
+      // Hide progress
+   }
+```
+
 ### Safe execution
 
 The library has `Activity.async` and `Fragment.async` extension functions to produce more safe code. So when using `async` inside Activity/Fragment, coroutine won't be resumed if `Activity` is in finishing state or `Fragment` is detached.
