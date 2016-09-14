@@ -84,9 +84,9 @@ async {
 }
 ```
 
-### Handle exceptions using `onError` block
+### Handle exceptions in `onError` block
 
-Using `onError` can be more convenient because resulting code has fewer indents. `onError`, when defined, has more priority than `try/catch`.
+Could be more convenient, as resulting code has fewer indents. `onError` called only if exception hasn't been handled in `try/catch`.
 ```Kotlin
 async {
    val loadedText = await {
@@ -97,6 +97,8 @@ async {
    // Handle exception in UI thread
 }
 ```
+
+Unhandled exceptions and exception delivered in `onError` wrapped by `AsyncException` with convenient stack trace to the place where `await` been called originally in UI thread 
 
 ### Safe execution
 
