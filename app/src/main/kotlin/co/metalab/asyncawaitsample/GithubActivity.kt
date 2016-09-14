@@ -56,7 +56,7 @@ class GitHubActivity : AppCompatActivity() {
 
       txtStatus.text = "Done."
    }.onError {
-      val errorMessage = getErrorMessage(it)
+      val errorMessage = getErrorMessage(it.cause!!)
 
       txtStatus.text = errorMessage
       Log.e(TAG, errorMessage, it)
@@ -73,7 +73,7 @@ class GitHubActivity : AppCompatActivity() {
       txtStatus.text = "Loading repos list..."
    }
 
-   private fun getErrorMessage(it: Exception): String {
+   private fun getErrorMessage(it: Throwable): String {
       return if (it is RetrofitHttpError) {
          val httpErrorCode = it.errorResponse.code()
          val errorResponse = Gson().fromJson(it.errorResponse.errorBody().string(), GithubErrorResponse::class.java)
