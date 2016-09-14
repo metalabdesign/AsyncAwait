@@ -161,11 +161,17 @@ class AsyncController(private val target: Any) {
       currentTask?.cancel()
    }
 
-   internal fun <V> handleException(e: Exception, machine: Continuation<V>) {
+   internal fun <V> handleException(originalException: Exception, machine: Continuation<V>) {
       runOnUi {
          currentTask = null
-         val asyncException = AsyncException(e, refineUiThreadStackTrace())
-         errorHandler?.invoke(asyncException) ?: machine.resumeWithException(asyncException)
+
+         try {
+            machine.resumeWithException(originalException)
+         } catch (e: Exception) {
+            val asyncException = AsyncException(e, refineUiThreadStackTrace())
+            errorHandler?.invoke(asyncException) ?: throw asyncException
+         }
+
          applyFinallyBlock()
       }
    }

@@ -12,16 +12,32 @@ import kotlin.test.fail
 class HandleExceptionTest {
 
    @Test
-   fun `Catch block is ignored when error block is specified`() {
+   fun `onError block never called if exception is caught in try-catch`() {
+      var done = false
+      async {
+         try {
+            await { throw CustomException("Catch me!") }
+         } catch (e: CustomException) {
+            assertEquals("Catch me!", e.message)
+            done = true
+         }
+      }.onError { e ->
+         fail("onError block should never be called if exception caught in try/catch")
+      }
+      loopUntil { done }
+   }
+
+   @Test
+   fun `onError block called if exception is not caught in try-catch`() {
       var done = false
       async {
          try {
             await { throw RuntimeException("Catch me!") }
-         } catch (e: RuntimeException) {
-            fail("onError block should handle this exception")
+         } catch (e: CustomException) {
+            fail("catch block should never be called as we don't catch only CustomException here")
          }
       }.onError { e ->
-         assertTrue(e is RuntimeException, "Exception thrown in await block should be caught here")
+         assertEquals("java.lang.RuntimeException: Catch me!", e.message)
          done = true
       }
       loopUntil { done }
@@ -32,11 +48,11 @@ class HandleExceptionTest {
       var done = false
       async {
          try {
-            await { throw RuntimeException("Catch me!") }
+            await { throw CustomException("Catch me!") }
             @Suppress("UNREACHABLE_CODE")
             fail("Exception should be thrown before this point")
-         } catch (e: RuntimeException) {
-            assertTrue(e is RuntimeException, "Exception thrown in await block should be caught here")
+         } catch (e: CustomException) {
+            assertTrue(e is CustomException, "Exception thrown in await block should be caught here")
             assertEquals(Looper.getMainLooper(), Looper.myLooper())
             done = true
          }
@@ -60,7 +76,7 @@ class HandleExceptionTest {
    }
 
    @Test
-   fun `Thrown exceptions should be wrapped with AsyncException`() {
+   fun `Exceptions handled in onError should be wrapped with AsyncException`() {
       var done = false
       async {
          await {
@@ -69,17 +85,17 @@ class HandleExceptionTest {
       }.onError { e ->
          assertTrue(e is AsyncException)
          assertTrue(e.cause is RuntimeException)
-         assertEquals("co.metalab.asyncawait.HandleExceptionTest\$Thrown exceptions should be wrapped with AsyncException$1", e.stackTrace[1].className)
+         assertEquals("co.metalab.asyncawait.HandleExceptionTest\$Exceptions handled in onError should be wrapped with AsyncException$1", e.stackTrace[1].className)
          assertEquals("doResume", e.stackTrace[1].methodName)
          done = true
       }
       loopUntil { done }
    }
 
-   @Test(expected = RuntimeException::class)
+   @Test(expected = AsyncException::class)
    fun `Unhandled exception in background thread delivered to system`() {
       async {
-         await { throw RuntimeException("Catch me!") }
+         await { throw CustomException("Catch me!") }
          @Suppress("UNREACHABLE_CODE")
          fail("Exception should be thrown before this point")
       }
@@ -87,3 +103,5 @@ class HandleExceptionTest {
    }
 
 }
+
+class CustomException(message: String) : Exception(message)
