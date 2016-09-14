@@ -103,14 +103,14 @@ Unhandled exceptions and exception delivered in `onError` wrapped by `AsyncExcep
 ### `finally` execution
 `finally` always executed after calling `onError` or when the coroutine finished successfully.
 ```Kotlin
-   async {
-      // Show progress
-      await { }
-   }.onError {
-      // Handle exception
-   }.finally {
-      // Hide progress
-   }
+async {
+   // Show progress
+   await { }
+}.onError {
+   // Handle exception
+}.finally {
+   // Hide progress
+}
 ```
 
 ### Safe execution
