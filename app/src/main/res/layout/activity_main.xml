@@ -1,50 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
    xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:tools="http://schemas.android.com/tools"
    android:layout_width="match_parent"
-   android:layout_height="match_parent"
-   android:paddingBottom="@dimen/activity_vertical_margin"
-   android:paddingLeft="@dimen/activity_horizontal_margin"
-   android:paddingRight="@dimen/activity_horizontal_margin"
-   android:orientation="vertical"
-   tools:context="co.metalab.asyncawaitsample.MainActivity">
+   android:layout_height="match_parent">
 
-   <ProgressBar
-      android:id="@+id/progressBar"
-      style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-      android:indeterminate="true"
+   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:visibility="invisible"/>
+      android:orientation="vertical"
+      android:paddingBottom="@dimen/activity_vertical_margin"
+      android:paddingLeft="@dimen/activity_horizontal_margin"
+      android:paddingRight="@dimen/activity_horizontal_margin"
+      tools:context="co.metalab.asyncawaitsample.MainActivity">
 
-   <TextView
-      android:id="@+id/txtResult"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center_horizontal"
-      android:layout_marginTop="16dp"
-      android:textSize="18sp"
-      tools:text="Bla Bla"/>
+      <ProgressBar
+         android:id="@+id/progressBar"
+         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:indeterminate="true"
+         android:visibility="invisible"/>
 
-   <Button
-      android:id="@+id/btnStart"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center_horizontal"
-      android:layout_marginTop="16dp"
-      android:text="@string/btnStart"/>
+      <TextView
+         android:id="@+id/txtResult"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginTop="16dp"
+         android:textSize="18sp"
+         tools:text="Bla Bla"/>
 
-   <android.support.v4.widget.Space
-      android:layout_width="match_parent"
-      android:layout_height="0dp"
-      android:layout_weight="1"/>
+      <Button
+         android:id="@+id/btnAwaitNormal"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_margin="16dp"
+         android:text="@string/btn_await"/>
 
-   <Button
-      android:id="@+id/btnOpenGithubActivity"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center_horizontal"
-      android:layout_marginTop="32dp"
-      android:text="@string/btn_open_github_activity"/>
-</LinearLayout>
+      <Button
+         android:id="@+id/btnAwaitWithProgress"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginBottom="8dp"
+         android:layout_marginLeft="16dp"
+         android:layout_marginRight="16dp"
+         android:text="@string/btn_await_with_progress"/>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:layout_marginRight="8dp"
+         android:background="@android:color/holo_red_light"
+         android:orientation="vertical"
+         android:paddingBottom="8dp"
+         android:paddingTop="8dp">
+
+         <Button
+            android:id="@+id/btnThrowException"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/btn_throw_exception"/>
+
+         <Button
+            android:id="@+id/btnTryCatchException"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/btn_try_catch_exception"/>
+
+         <Button
+            android:id="@+id/btnHandleExceptionInOnError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/btn_handle_exception_in_onError"/>
+      </LinearLayout>
+
+      <fragment
+         android:id="@+id/blue_fragment"
+         android:name="co.metalab.asyncawaitsample.BlueFragment"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:layout_marginRight="8dp"
+         android:layout_marginTop="16dp"
+         tools:layout="@layout/fragment_blue"/>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:layout_marginRight="8dp"
+         android:background="@android:color/holo_orange_light"
+         android:paddingBottom="8dp"
+         android:paddingTop="8dp">
+
+         <Button
+            android:id="@+id/btnOrangeTestMemoryLeaks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="@string/btn_orange_test_memory_leaks"/>
+
+      </LinearLayout>
+
+      <Button
+         android:id="@+id/btnOpenGithubActivity"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginTop="16dp"
+         android:text="@string/btn_open_github_activity"/>
+   </LinearLayout>
+</ScrollView>

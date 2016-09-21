@@ -1,15 +1,16 @@
 package co.metalab.asyncawait
 
 import android.app.Activity
+import android.app.Application
 import android.app.Fragment
-import android.os.Handler
 import android.os.Looper
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
-import java.util.concurrent.TimeoutException
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 
 @RunWith(RobolectricTestRunner::class)
 class AsyncTest {
@@ -52,64 +53,6 @@ class AsyncTest {
       assertEquals("OK", result, "6. Test is done")
    }
 
-   @Test(expected = RuntimeException::class)
-   fun `Unhandled exception in background thread delivered to system`() {
-      async {
-         await { throw RuntimeException("Catch me!") }
-         @Suppress("UNREACHABLE_CODE")
-         fail("Exception should be thrown before this point")
-      }
-      loopUntil { false }
-   }
-
-   @Test
-   fun `Exception from background thread can be caught outside await block using try-catch in UI thread`() {
-      var done = false
-      async {
-         try {
-            await { throw RuntimeException("Catch me!") }
-            @Suppress("UNREACHABLE_CODE")
-            fail("Exception should be thrown before this point")
-         } catch (e: RuntimeException) {
-            assertTrue(e is RuntimeException, "Exception thrown in await block should be caught here")
-            assertEquals(Looper.getMainLooper(), Looper.myLooper())
-            done = true
-         }
-      }
-      loopUntil { done }
-   }
-
-   @Test
-   fun `Exception from background thread can be caught in onError block in UI thread`() {
-      var done = false
-      async {
-         await { throw RuntimeException("Catch me!") }
-         @Suppress("UNREACHABLE_CODE")
-         fail("Exception should be thrown before this point")
-      }.onError { e ->
-         assertTrue(e is RuntimeException, "Exception thrown in await block should be caught here")
-         assertEquals(Looper.getMainLooper(), Looper.myLooper())
-         done = true
-      }
-      loopUntil { done }
-   }
-
-   @Test
-   fun `Catch block is ignored when error block is specified`() {
-      var done = false
-      async {
-         try {
-            await { throw RuntimeException("Catch me!") }
-         } catch (e: RuntimeException) {
-            fail("onError block should handle this exception")
-         }
-      }.onError { e ->
-         assertTrue(e is RuntimeException, "Exception thrown in await block should be caught here")
-         done = true
-      }
-      loopUntil { done }
-   }
-
    @Test
    fun `Await with progress`() {
       var result = ""
@@ -143,6 +86,7 @@ class AsyncTest {
    fun `Deliver result when Activity is alive`() {
       val activity = Mockito.mock(Activity::class.java)
       Mockito.`when`(activity.isFinishing).thenReturn(false)
+      Mockito.`when`(activity.application).thenReturn(Mockito.mock(Application::class.java))
 
       var result = ""
       var done = false
@@ -159,6 +103,7 @@ class AsyncTest {
    @Test
    fun `Do not deliver result when Activity is finishing`() {
       val activity = Mockito.mock(Activity::class.java)
+      Mockito.`when`(activity.application).thenReturn(Mockito.mock(Application::class.java))
 
       var result = ""
       var done = false

@@ -33,6 +33,11 @@ class GitHubActivity : AppCompatActivity() {
       btnGetRepos.setOnClickListener { refreshRepos() }
    }
 
+   override fun onDestroy() {
+      super.onDestroy()
+      async.cancelAll()
+   }
+
    private fun refreshRepos() = async {
       showLoadingUi()
 
@@ -49,15 +54,15 @@ class GitHubActivity : AppCompatActivity() {
          showRepos(reposList)
       }
 
-      hideLoadingUi()
+      txtStatus.text = "Done."
    }.onError {
-      progressBar.visibility = View.INVISIBLE
-      btnGetRepos.isEnabled = true
-
-      val errorMessage = getErrorMessage(it)
+      val errorMessage = getErrorMessage(it.cause!!)
 
       txtStatus.text = errorMessage
       Log.e(TAG, errorMessage, it)
+   }.finally {
+      progressBar.visibility = View.INVISIBLE
+      btnGetRepos.isEnabled = true
    }
 
    private fun showLoadingUi() {
@@ -68,13 +73,7 @@ class GitHubActivity : AppCompatActivity() {
       txtStatus.text = "Loading repos list..."
    }
 
-   private fun hideLoadingUi() {
-      progressBar.visibility = View.INVISIBLE
-      btnGetRepos.isEnabled = true
-      txtStatus.text = "Done."
-   }
-
-   private fun getErrorMessage(it: Exception): String {
+   private fun getErrorMessage(it: Throwable): String {
       return if (it is RetrofitHttpError) {
          val httpErrorCode = it.errorResponse.code()
          val errorResponse = Gson().fromJson(it.errorResponse.errorBody().string(), GithubErrorResponse::class.java)

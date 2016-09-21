@@ -4,5 +4,11 @@
    <string name="btn_open_github_activity">Example using retrofit</string>
    <string name="default_user_name">pilgr</string>
    <string name="hint_github_username">github username</string>
-   <string name="btnStart">Start</string>
+   <string name="btn_await">Await</string>
+   <string name="btn_await_with_progress">Await with progress</string>
+   <string name="btn_throw_exception">Throw Exception</string>
+   <string name="btn_try_catch_exception">try/catch exception</string>
+   <string name="btn_handle_exception_in_onError">Handle exception in onError</string>
+   <string name="btn_fragment_blue_test_memory_leaks">Check fragment memory leaks</string>
+   <string name="btn_orange_test_memory_leaks">Check generic memory leaks</string>
 </resources>

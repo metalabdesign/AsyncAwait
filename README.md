@@ -84,9 +84,9 @@ async {
 }
 ```
 
-### Handle exceptions using `onError` block
+### Handle exceptions in `onError` block
 
-Using `onError` can be more convenient because resulting code has fewer indents. `onError`, when defined, has more priority than `try/catch`.
+Could be more convenient, as resulting code has fewer indents. `onError` called only if exception hasn't been handled in `try/catch`.
 ```Kotlin
 async {
    val loadedText = await {
@@ -98,20 +98,41 @@ async {
 }
 ```
 
+Unhandled exceptions and exception delivered in `onError` wrapped by `AsyncException` with convenient stack trace to the place where `await` been called originally in UI thread 
+
+### `finally` execution
+`finally` always executed after calling `onError` or when the coroutine finished successfully.
+```Kotlin
+async {
+   // Show progress
+   await { }
+}.onError {
+   // Handle exception
+}.finally {
+   // Hide progress
+}
+```
+
 ### Safe execution
 
 The library has `Activity.async` and `Fragment.async` extension functions to produce more safe code. So when using `async` inside Activity/Fragment, coroutine won't be resumed if `Activity` is in finishing state or `Fragment` is detached.
+
+### Avoid memory leaks
+
+Long running background code referencing any view/context may produce memory leaks. To avoid such memory leaks, call `async.cancelAll()` when all running coroutines referencing current object should be interrupted, like
+```Kotlin
+override fun onDestroy() {
+      super.onDestroy()
+      async.cancelAll()
+}
+```
+The `async` is an extension property for `Any` type. So calling `[this.]async.cancelAll` intrerrupts only coroutines started by `[this.]async {}` function.
 
 ### Common extensions
 
 The library has a convenient API to work with Retrofit and rxJava.
 
 #### For Retorift
-* `await(retrofit2.Call)`
-```Kotlin
-reposResponse = await(github.listRepos(userName))
-```
-
 * `awaitSuccessful(retrofit2.Call)`
 
 Returns `Response<V>.body()` if successful, or throws `RetrofitHttpError` with error response otherwise.  
@@ -146,7 +167,7 @@ The Kotlin compiler responsibility is to convert _coroutine_ (everything inside 
 # How to use it
 Add library dependency into your app's `build.gradle`
 ```Groovy
-compile 'co.metalab.asyncawait:asyncawait:0.5'
+compile 'co.metalab.asyncawait:asyncawait:0.6'
 ```
 
 As for now Kotlin 1.1 is not released yet, you have to download and setup latest Early Access Preview release. 
