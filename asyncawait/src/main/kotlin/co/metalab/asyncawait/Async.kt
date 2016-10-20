@@ -9,6 +9,7 @@ import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
 private val executors = WeakHashMap<Any, ExecutorService>()
@@ -26,7 +27,8 @@ private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncControlle
  *
  * @param c a coroutine representing asynchronous computations
  *
- * @return AsyncController object allowing to define optional [onError] or [finally] handlers
+ * @return AsyncController object allowing to define optional [AsyncController.onError]
+ * or [AsyncController.finally] handlers
  */
 fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
    val controller = AsyncController(this)
@@ -225,13 +227,21 @@ private fun Any.keepCoroutineForCancelPurpose(controller: AsyncController) {
 }
 
 private fun Any.getExecutorService(): ExecutorService {
+   val threadName = "AsyncAwait-${this.javaClass.simpleName}"
    return executors.getOrElse(this) {
-      val newExecutor = Executors.newSingleThreadExecutor()
+      val newExecutor = Executors.newSingleThreadExecutor(AsyncThreadFactory(threadName))
       executors[this] = newExecutor
       newExecutor
    }
 }
 
+private class AsyncThreadFactory(val name: String) : ThreadFactory {
+   private var counter = 0
+   override fun newThread(r: Runnable): Thread {
+      counter++
+      return Thread(r, "$name-$counter")
+   }
+}
 
 val Any.async: Async
    get() = Async(this)
