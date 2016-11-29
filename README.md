@@ -167,7 +167,7 @@ The Kotlin compiler responsibility is to convert _coroutine_ (everything inside 
 # How to use it
 Add library dependency into your app's `build.gradle`
 ```Groovy
-compile 'co.metalab.asyncawait:asyncawait:0.7'
+compile 'co.metalab.asyncawait:asyncawait:0.7.1'
 ```
 
 As for now Kotlin 1.1 is not released yet, you have to download and setup latest Early Access Preview release. 
@@ -175,7 +175,7 @@ As for now Kotlin 1.1 is not released yet, you have to download and setup latest
 * Make sure you have similar config in the main `build.gradle`
 ```
 buildscript {
-    ext.kotlin_version = '1.1-M02'
+    ext.kotlin_version = '1.1-M03'
     repositories {
         ...
         maven {
