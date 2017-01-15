@@ -8,6 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
+@Suppress("EXPERIMENTAL_FEATURE_WARNING")
 @RunWith(RobolectricTestRunner::class)
 class HandleExceptionTest {
 
@@ -21,7 +22,7 @@ class HandleExceptionTest {
             assertEquals("Catch me!", e.message)
             done = true
          }
-      }.onError { e ->
+      }.onError {
          fail("onError block should never be called if exception caught in try/catch")
       }
       loopUntil { done }
@@ -76,7 +77,7 @@ class HandleExceptionTest {
    }
 
    @Test
-   fun `Exceptions handled in onError should be wrapped with AsyncException`() {
+   fun `Exception handled in onError is wrapped by AsyncException`() {
       var done = false
       async {
          await {
@@ -85,8 +86,8 @@ class HandleExceptionTest {
       }.onError { e ->
          assertTrue(e is AsyncException)
          assertTrue(e.cause is RuntimeException)
-         assertEquals("co.metalab.asyncawait.HandleExceptionTest\$Exceptions handled in onError should be wrapped with AsyncException$1", e.stackTrace[1].className)
-         assertEquals("doResume", e.stackTrace[1].methodName)
+         assertEquals("co.metalab.asyncawait.HandleExceptionTest\$Exception handled in onError is wrapped by AsyncException$1", e.stackTrace[0].className)
+         assertEquals("doResume", e.stackTrace[0].methodName)
          done = true
       }
       loopUntil { done }

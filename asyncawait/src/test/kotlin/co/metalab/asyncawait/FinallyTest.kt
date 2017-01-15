@@ -8,6 +8,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowLog
 import kotlin.test.assertEquals
 
+@Suppress("EXPERIMENTAL_FEATURE_WARNING")
 @RunWith(RobolectricTestRunner::class)
 class FinallyTest {
 

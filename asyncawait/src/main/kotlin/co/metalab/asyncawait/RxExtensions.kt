@@ -1,3 +1,5 @@
+@file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
+
 package co.metalab.asyncawait
 
 import rx.Observable
@@ -7,7 +9,7 @@ import rx.Observable
  *
  * @result the first value emitted by [observable]
  */
-suspend fun <V> AsyncController.await(observable: Observable<V>, machine: Continuation<V>) {
-   this.await({ observable.toBlocking().first() }, machine)
+suspend fun <V> AsyncController.await(observable: Observable<V>): V = this.await {
+   observable.toBlocking().first()
 }
 

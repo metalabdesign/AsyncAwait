@@ -1,3 +1,5 @@
+@file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
+
 package co.metalab.asyncawait
 
 import android.app.Activity
@@ -11,6 +13,9 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.startCoroutine
+import kotlin.coroutines.suspendCoroutine
 
 private val executors = WeakHashMap<Any, ExecutorService>()
 
@@ -30,7 +35,7 @@ private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncControlle
  * @return AsyncController object allowing to define optional [AsyncController.onError]
  * or [AsyncController.finally] handlers
  */
-fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+fun Any.async(c: suspend AsyncController.() -> Unit): AsyncController {
    val controller = AsyncController(this)
    keepCoroutineForCancelPurpose(controller)
    return async(c, controller)
@@ -50,7 +55,7 @@ fun Any.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncContr
  *
  * @return AsyncController object allowing to define optional `onError` handler
  */
-fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+fun Activity.async(c: suspend AsyncController.() -> Unit): AsyncController {
    val controller = AsyncController(this)
    keepCoroutineForCancelPurpose(controller)
    return async(c, controller)
@@ -71,15 +76,23 @@ fun Activity.async(coroutine c: AsyncController.() -> Continuation<Unit>): Async
  *
  * @return AsyncController object allowing to define optional `onError` handler
  */
-fun Fragment.async(coroutine c: AsyncController.() -> Continuation<Unit>): AsyncController {
+fun Fragment.async(c: suspend AsyncController.() -> Unit): AsyncController {
    val controller = AsyncController(this)
    keepCoroutineForCancelPurpose(controller)
    return async(c, controller)
 }
 
-internal fun async(c: AsyncController.() -> Continuation<Unit>,
+internal fun async(c: suspend AsyncController.() -> Unit,
                    controller: AsyncController): AsyncController {
-   controller.c().resume(Unit)
+   c.startCoroutine(controller, completion = object : Continuation<Unit> {
+      override fun resume(value: Unit) {
+      }
+
+      override fun resumeWithException(exception: Throwable) {
+         throw exception
+      }
+
+   })
    return controller
 }
 
@@ -90,7 +103,6 @@ typealias ProgressHandler<P> = (P) -> Unit
 /**
  * Controls coroutine execution and thread scheduling
  */
-@AllowSuspendExtensions
 class AsyncController(private val target: Any) {
 
    private var errorHandler: ErrorHandler? = null
@@ -119,10 +131,12 @@ class AsyncController(private val target: Any) {
     * @return the result of [f] delivered in UI thread after computation is done
     * in background thread
     */
-   suspend fun <V> await(f: () -> V, machine: Continuation<V>) {
+   suspend fun <V> await(f: () -> V): V {
       keepAwaitCallerStackTrace()
-      currentTask = AwaitTask(f, this, machine)
-      target.getExecutorService().submit(currentTask)
+      return suspendCoroutine {
+         currentTask = AwaitTask(f, this, it)
+         target.getExecutorService().submit(currentTask)
+      }
    }
 
    /**
@@ -138,11 +152,15 @@ class AsyncController(private val target: Any) {
     * @return the result of [f] delivered in UI thread after computation is done
     * in background thread
     */
-   suspend fun <V, P> awaitWithProgress(f: (ProgressHandler<P>) -> V,
-                                        onProgress: ProgressHandler<P>, machine: Continuation<V>) {
+   suspend fun <V, P> awaitWithProgress(
+       f: (ProgressHandler<P>) -> V,
+       onProgress: ProgressHandler<P>
+   ): V {
       keepAwaitCallerStackTrace()
-      currentTask = AwaitWithProgressTask(f, onProgress, this, machine)
-      target.getExecutorService().submit(currentTask)
+      return suspendCoroutine {
+         currentTask = AwaitWithProgressTask(f, onProgress, this, it)
+         target.getExecutorService().submit(currentTask)
+      }
    }
 
    /**
@@ -168,12 +186,12 @@ class AsyncController(private val target: Any) {
       currentTask?.cancel()
    }
 
-   internal fun <V> handleException(originalException: Exception, machine: Continuation<V>) {
+   internal fun <V> handleException(originalException: Exception, continuation: Continuation<V>) {
       runOnUi {
          currentTask = null
 
          try {
-            machine.resumeWithException(originalException)
+            continuation.resumeWithException(originalException)
          } catch (e: Exception) {
             val asyncException = AsyncException(e, refineUiThreadStackTrace())
             errorHandler?.invoke(asyncException) ?: throw asyncException
@@ -208,10 +226,10 @@ class AsyncController(private val target: Any) {
    }
 
    private fun refineUiThreadStackTrace(): Array<out StackTraceElement> {
-      val dropTopStackTraceLines = 2 // Remove utility lines from the top of the stack trace
-      return Array(uiThreadStackTrace.size - dropTopStackTraceLines) {
-         uiThreadStackTrace[dropTopStackTraceLines + it]
-      }
+      return uiThreadStackTrace
+          .dropWhile { it.methodName != "keepAwaitCallerStackTrace" }
+          .drop(2)
+          .toTypedArray()
    }
 
 }
@@ -257,14 +275,14 @@ class Async(private val asyncTarget: Any) {
 internal abstract class CancelableTask<V>(@Volatile
                                           var asyncController: AsyncController?,
                                           @Volatile
-                                          var machine: Continuation<V>?) : Runnable {
+                                          var continuation: Continuation<V>?) : Runnable {
 
    private val isCancelled = AtomicBoolean(false)
 
    open internal fun cancel() {
       isCancelled.set(true)
       asyncController = null
-      machine = null
+      continuation = null
    }
 
    override fun run() {
@@ -277,7 +295,7 @@ internal abstract class CancelableTask<V>(@Volatile
          asyncController?.apply {
             runOnUi {
                currentTask = null
-               machine?.resume(value)
+               continuation?.resume(value)
                applyFinallyBlock()
             }
          }
@@ -285,7 +303,7 @@ internal abstract class CancelableTask<V>(@Volatile
       } catch (e: Exception) {
          if (isCancelled.get()) return
 
-         machine?.apply {
+         continuation?.apply {
             asyncController?.handleException(e, this)
          }
       }
@@ -296,8 +314,8 @@ internal abstract class CancelableTask<V>(@Volatile
 
 private class AwaitTask<V>(val f: () -> V,
                            asyncController: AsyncController,
-                           machine: Continuation<V>)
-: CancelableTask<V>(asyncController, machine) {
+                           continuation: Continuation<V>)
+: CancelableTask<V>(asyncController, continuation) {
 
    override fun obtainValue(): V {
       return f()
@@ -308,8 +326,8 @@ private class AwaitWithProgressTask<P, V>(val f: (ProgressHandler<P>) -> V,
                                           @Volatile
                                           var onProgress: ProgressHandler<P>?,
                                           asyncController: AsyncController,
-                                          machine: Continuation<V>)
-: CancelableTask<V>(asyncController, machine) {
+                                          continuation: Continuation<V>)
+: CancelableTask<V>(asyncController, continuation) {
 
    override fun obtainValue(): V {
       return f { progressValue ->
