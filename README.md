@@ -1,5 +1,5 @@
 # Async/Await
-A Kotlin library for Android allowing writing asynchronous code in synchronous style using `async`/`await` approach
+A Kotlin library for Android making writing asynchronous code simpler and more reliable using `async`/`await` approach, like:
 
 ```Kotlin
 async {
@@ -11,7 +11,13 @@ async {
    progressBar.visibility = View.INVISIBLE
 }
 ```
-The point is that you can write asynchronous code in a simple imperative style. Calling `await` to run code in background doesn't lock UI thread. Then execution _continues_ in UI thread after background work is finished. There is no magic, see [how it works](#how-it-works).
+As you see in example above, you can write asynchronous code in a imperative style, step by step. Calling `await` to run code in background doesn't lock the UI thread. And execution _continues_ in UI thread after background work is finished. There is no magic, see [how it works](#how-it-works).
+
+## Dependency
+```Groovy
+compile 'co.metalab.asyncawait:asyncawait:0.8'
+```
+Library is built upon preview version of Kotlin 1.1-M4, see [how to set it up](#how-to-setup).
 
 
 ## Usage
@@ -132,14 +138,16 @@ The `async` is an extension property for `Any` type. So calling `[this.]async.ca
 
 The library has a convenient API to work with Retrofit and rxJava.
 
-#### For Retorift
+#### Retorift
 * `awaitSuccessful(retrofit2.Call)`
 
 Returns `Response<V>.body()` if successful, or throws `RetrofitHttpError` with error response otherwise.  
 ```Kotlin
-reposList = awaitSuccessful(github.listRepos(userName))
+async {
+   reposList = awaitSuccessful(github.listRepos(userName))
+}
 ```
-#### For rxJava
+#### rxJava
 * await(Observable<V>)
 
 Waits until `observable` emits first value.
@@ -150,32 +158,28 @@ async {
 }
 ```
 
-###How to create custom extensions
-You can create your own `await` implementations. Here is example to give you idea 
+### How to create custom extensions
+You can create your own `await` implementations. Here is example of rxJava extension to give you idea. Just return the result of calling `AsyncController.await` with your own lambda implementation. The code inside `await` block will be run on a background thread.
 ```Kotlin
-suspend fun <V> AsyncController.await(observable: Observable<V>, machine: Continuation<V>) {
-   this.await({ observable.toBlocking().first() }, machine)
+suspend fun <V> AsyncController.await(observable: Observable<V>): V = this.await {
+   observable.toBlocking().first()
 }
 ```
 
-##How it works
+## How it works
 
-The library is built upon [coroutines](https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md) introduced in [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2016/07/first-glimpse-of-kotlin-1-1-coroutines-type-aliases-and-more/).
+The library is built upon [coroutines](https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md) introduced in [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2016/07/first-glimpse-of-kotlin-1-1-coroutines-type-aliases-and-more/), with major update made in Kotlin [1.1 M4](https://blog.jetbrains.com/kotlin/2016/12/kotlin-1-1-m04-is-here/).
 
-The Kotlin compiler responsibility is to convert _coroutine_ (everything inside `async` block) into a state machine, where every `await` call is non-blocking suspension point. The library is responsible for thread handling and managing state machine. When background computation is done the library delivers result back into UI thread and resumes _coroutine_ execution.
+The Kotlin compiler responsibility is to convert _coroutine_ (everything inside `async` block) into a state machine, where every `await` call is a non-blocking suspension point. The library is responsible for thread handling, error handling and managing state machine. When background computation is done the library delivers result back into UI thread and resumes _coroutine_ execution.
 
-# How to use it
-Add library dependency into your app's `build.gradle`
-```Groovy
-compile 'co.metalab.asyncawait:asyncawait:0.7.1'
-```
+# How to setup
 
 As for now Kotlin 1.1 is not released yet, you have to download and setup latest Early Access Preview release. 
 * Go to `Tools` -> `Kotlin` -> `Configure Kotlin Plugin updates` -> `Select EAP 1.1` -> `Check for updates` and install latest one. 
 * Make sure you have similar config in the main `build.gradle`
 ```
 buildscript {
-    ext.kotlin_version = '1.1-M03'
+    ext.kotlin_version = '1.1-M04'
     repositories {
         ...
         maven {
@@ -183,33 +187,25 @@ buildscript {
         }
     }
     dependencies {
-        // (!) 2.1.2 This version is more stable with Kotlin for now
-        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.android.tools.build:gradle:2.2.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 ```
-* Make sure you have similar config in app's `build.gradle`
-```
-buildscript {
-    repositories {
-        ...
-        maven {
-            url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
-        }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-```
-and this section for getting latest kotlin-stdlib
+* Make sure you have similar config at the bottom of app's `build.gradle`
 ```
 repositories {
     mavenCentral()
     maven {
         url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
     }
+}
+```
+and this section for getting latest kotlin-stdlib
+```
+dependencies {
+    ...
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    ...
 }
 ```
