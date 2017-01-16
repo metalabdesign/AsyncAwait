@@ -1,5 +1,5 @@
 # Async/Await
-A Kotlin library for Android making writing asynchronous code simpler and more reliable using `async`/`await` approach, like:
+A Kotlin library for Android to write asynchronous code in a simpler and more reliable way using `async`/`await` approach, like:
 
 ```Kotlin
 async {
@@ -11,7 +11,7 @@ async {
    progressBar.visibility = View.INVISIBLE
 }
 ```
-As you see in example above, you can write asynchronous code in a imperative style, step by step. Calling `await` to run code in background doesn't lock the UI thread. And execution _continues_ in UI thread after background work is finished. There is no magic, see [how it works](#how-it-works).
+As you see in the example above, you can write asynchronous code in a imperative style, step by step. Calling `await` to run code in background doesn't lock the UI thread. And execution _continues_ in UI thread after background work is finished. There is no magic, see [how it works](#how-it-works).
 
 ## Dependency
 ```Groovy
