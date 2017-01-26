@@ -13,9 +13,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.startCoroutine
-import kotlin.coroutines.suspendCoroutine
+import kotlin.coroutines.*
 
 private val executors = WeakHashMap<Any, ExecutorService>()
 
@@ -85,6 +83,8 @@ fun Fragment.async(c: suspend AsyncController.() -> Unit): AsyncController {
 internal fun async(c: suspend AsyncController.() -> Unit,
                    controller: AsyncController): AsyncController {
    c.startCoroutine(controller, completion = object : Continuation<Unit> {
+      override val context: CoroutineContext = EmptyCoroutineContext
+
       override fun resume(value: Unit) {
       }
 
