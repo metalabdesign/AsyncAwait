@@ -15,7 +15,7 @@ As you see in the example above, you can write asynchronous code in a imperative
 
 ## Dependency
 ```Groovy
-compile 'co.metalab.asyncawait:asyncawait:0.9'
+compile 'co.metalab.asyncawait:asyncawait:0.9.5'
 ```
 Library is built upon  Kotlin 1.1 RC1, see [how to set it up](#how-to-setup).
 
