@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.*
+import kotlin.coroutines.experimental.*
 
 private val executors = WeakHashMap<Any, ExecutorService>()
 
@@ -245,7 +245,7 @@ private fun Any.keepCoroutineForCancelPurpose(controller: AsyncController) {
 }
 
 private fun Any.getExecutorService(): ExecutorService {
-   val threadName = "AsyncAwait-${this.javaClass.simpleName}"
+   val threadName = "AsyncAwait-${this::class.java.simpleName}"
    return executors.getOrElse(this) {
       val newExecutor = Executors.newSingleThreadExecutor(AsyncThreadFactory(threadName))
       executors[this] = newExecutor

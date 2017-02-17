@@ -15,9 +15,9 @@ As you see in the example above, you can write asynchronous code in a imperative
 
 ## Dependency
 ```Groovy
-compile 'co.metalab.asyncawait:asyncawait:0.9'
+compile 'co.metalab.asyncawait:asyncawait:0.9.5'
 ```
-Library is built upon beta version of Kotlin 1.1.0-beta-22, see [how to set it up](#how-to-setup).
+Library is built upon  Kotlin 1.1 RC1, see [how to set it up](#how-to-setup).
 
 
 ## Usage
@@ -179,7 +179,7 @@ As for now Kotlin 1.1 is not released yet, you have to download and setup latest
 * Make sure you have similar config in the main `build.gradle`
 ```
 buildscript {
-    ext.kotlin_version = '1.1.0-beta-22'
+    ext.kotlin_version = '1.1.0-rc-91'
     repositories {
         ...
         maven {
