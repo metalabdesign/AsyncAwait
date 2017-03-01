@@ -33,10 +33,3 @@ dependencies {
     testCompile "org.robolectric:robolectric:3.1.2"
     testCompile 'org.mockito:mockito-core:2.0.111-beta'
 }
-
-repositories {
-    mavenCentral()
-    maven {
-        url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
-    }
-}

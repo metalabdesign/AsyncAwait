@@ -1,6 +1,8 @@
 # Async/Await
 A Kotlin library for Android to write asynchronous code in a simpler and more reliable way using `async`/`await` approach, like:
 
+Requires Kotlin 1.1.
+
 ```Kotlin
 async {
    progressBar.visibility = View.VISIBLE
@@ -15,10 +17,8 @@ As you see in the example above, you can write asynchronous code in a imperative
 
 ## Dependency
 ```Groovy
-compile 'co.metalab.asyncawait:asyncawait:0.9.5'
+compile 'co.metalab.asyncawait:asyncawait:1.0.0'
 ```
-Library is built upon  Kotlin 1.1 RC1, see [how to set it up](#how-to-setup).
-
 
 ## Usage
 ### `async`
@@ -168,44 +168,6 @@ suspend fun <V> AsyncController.await(observable: Observable<V>): V = this.await
 
 ## How it works
 
-The library is built upon [coroutines](https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md) introduced in [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2016/07/first-glimpse-of-kotlin-1-1-coroutines-type-aliases-and-more/), with major update made in Kotlin [1.1 M4](https://blog.jetbrains.com/kotlin/2016/12/kotlin-1-1-m04-is-here/).
+The library is built upon [coroutines](https://github.com/Kotlin/kotlin-coroutines/blob/master/kotlin-coroutines-informal.md) introduced in [Kotlin 1.1](https://blog.jetbrains.com/kotlin/2017/03/kotlin-1-1/).
 
 The Kotlin compiler responsibility is to convert _coroutine_ (everything inside `async` block) into a state machine, where every `await` call is a non-blocking suspension point. The library is responsible for thread handling, error handling and managing state machine. When background computation is done the library delivers result back into UI thread and resumes _coroutine_ execution.
-
-# How to setup
-
-As for now Kotlin 1.1 is not released yet, you have to download and setup latest Early Access Preview release. 
-* Go to `Tools` -> `Kotlin` -> `Configure Kotlin Plugin updates` -> `Select EAP 1.1` -> `Check for updates` and install latest one. 
-* Make sure you have similar config in the main `build.gradle`
-```
-buildscript {
-    ext.kotlin_version = '1.1.0-rc-91'
-    repositories {
-        ...
-        maven {
-            url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
-        }
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-```
-* Make sure you have similar config at the bottom of app's `build.gradle`
-```
-repositories {
-    mavenCentral()
-    maven {
-        url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
-    }
-}
-```
-and this section for getting latest kotlin-stdlib
-```
-dependencies {
-    ...
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    ...
-}
-```
