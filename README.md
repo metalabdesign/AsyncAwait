@@ -1,8 +1,6 @@
 # Async/Await
 A Kotlin library for Android to write asynchronous code in a simpler and more reliable way using `async`/`await` approach, like:
 
-Requires Kotlin 1.1.
-
 ```Kotlin
 async {
    progressBar.visibility = View.VISIBLE
