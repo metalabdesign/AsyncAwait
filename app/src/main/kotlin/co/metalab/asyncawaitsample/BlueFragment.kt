@@ -19,7 +19,7 @@ class BlueFragment : Fragment() {
                              savedInstanceState: Bundle?): View? {
       val view = inflater.inflate(R.layout.fragment_blue, container, false)
 
-      btnTest = view.findViewById(R.id.btnFragmentBlueTestMemoryLeaks) as Button
+      btnTest = view.findViewById<Button>(R.id.btnFragmentBlueTestMemoryLeaks)
       btnTest.setOnClickListener {
          testMemoryLeaks()
       }
