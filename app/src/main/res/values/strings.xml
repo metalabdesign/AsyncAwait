@@ -11,4 +11,6 @@
    <string name="btn_handle_exception_in_onError">Handle exception in onError</string>
    <string name="btn_fragment_blue_test_memory_leaks">Check fragment memory leaks</string>
    <string name="btn_orange_test_memory_leaks">Check generic memory leaks</string>
+    <string name="asyncactivity">Async Activity</string>
+   <string name="coroutineactivity">Coroutine Activity</string>
 </resources>
