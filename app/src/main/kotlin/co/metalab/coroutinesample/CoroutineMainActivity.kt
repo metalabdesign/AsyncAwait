@@ -15,7 +15,7 @@ import kotlinx.coroutines.experimental.launch
 
 class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
     private lateinit var orangePresenter: KxOrangePresenter
-    private var job: Job = Job()
+    private val job: Job = Job()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +39,7 @@ class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
 
         orangePresenter = KxOrangePresenter(this)
         btnOrangeTestMemoryLeaks.setOnClickListener {
-            launch(job + UI) { orangePresenter.startLongRunningOrangeTask() }
+            orangePresenter.startLongRunningOrangeTask()
         }
 
         btnOpenGithubActivity.setOnClickListener {
@@ -49,6 +49,7 @@ class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
 
     override fun onDestroy() {
         job.cancel()
+        orangePresenter.stop()
         super.onDestroy()
     }
 
