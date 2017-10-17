@@ -4,18 +4,17 @@ import co.metalab.coroutinesample.KxOrangePresenter
 import co.metalab.coroutinesample.KxOrangeView
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import kotlinx.coroutines.experimental.Unconfined
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 
 class KxOrangePresenterTest {
     private val kxOrangeView = mock<KxOrangeView>()
 
     @Test
-    fun orangeTaskIsDone() {
-        val kxOrangePresenter = KxOrangePresenter(kxOrangeView,
-            coroutineDispatcher = Unconfined)
+    fun orangeTaskIsDone() = runBlocking {
+        val kxOrangePresenter = KxOrangePresenter(kxOrangeView, coroutineContext)
 
-        kxOrangePresenter.startLongRunningOrangeTask()
+        kxOrangePresenter.startLongRunningOrangeTask().join()
 
         verify(kxOrangeView).setOrangeButtonText("Orange task in progress...")
         verify(kxOrangeView).setOrangeButtonText("Orange task is done")

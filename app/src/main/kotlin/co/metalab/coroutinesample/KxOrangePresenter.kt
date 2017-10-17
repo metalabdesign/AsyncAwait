@@ -3,6 +3,7 @@ package co.metalab.coroutinesample
 import android.util.Log
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -20,7 +21,7 @@ class KxOrangePresenter(val orangeView: KxOrangeView,
     }
 
     suspend private fun orangeTask(): String {
-        Thread.sleep(3000)
+        delay(3000)
         Log.d("OrangePresenter", "Orange task is done")
         return "Orange task is done"
     }
