@@ -8,9 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import co.metalab.asyncawaitsample.R
+import co.metalab.util.longRunningTask
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 
 class KxBlueFragment : Fragment() {
@@ -34,14 +35,14 @@ class KxBlueFragment : Fragment() {
 
     suspend private fun testMemoryLeaks() {
         btnTest.text = "Loading fragment task"
-        btnTest.text = doTask()
+        btnTest.text = doTask().await()
         Log.d("BlueFragment", "Result delivered in UI thread")
     }
 
-    suspend private fun doTask(): String {
-        delay(3000)
+    suspend private fun doTask() = async {
+        longRunningTask(3000)
         Log.d("BlueFragment", "Task is done")
-        return "Fragment task done"
+        "Fragment task done"
     }
 
     override fun onDestroy() {

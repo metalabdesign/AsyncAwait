@@ -2,12 +2,12 @@ package co.metalab.asyncawaitsample
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.SystemClock
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import co.metalab.asyncawait.ProgressHandler
 import co.metalab.asyncawait.async
+import co.metalab.util.longRunningTask
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity(), OrangeView {
 
 @DebugLog
 private fun loadText(): String {
-    SystemClock.sleep(1000)
+    longRunningTask(1000)
     return "Loaded Text"
 }
 
@@ -159,13 +159,13 @@ private fun loadText(): String {
 private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
     for (i in 1..10) {
         handleProgress(i * 100 / 10) // in %
-        SystemClock.sleep(300)
+        longRunningTask(300)
     }
     return "Loaded Text"
 }
 
 @DebugLog
 private fun processText(input: String): String {
-    SystemClock.sleep(1000)
+    longRunningTask(1000)
     return "Processed $input"
 }

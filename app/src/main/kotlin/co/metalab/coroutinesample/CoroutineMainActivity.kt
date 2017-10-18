@@ -6,11 +6,12 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import co.metalab.asyncawait.ProgressHandler
 import co.metalab.asyncawaitsample.R
+import co.metalab.util.longRunningTask
 import hugo.weaving.DebugLog
 import kotlinx.android.synthetic.main.activity_coroutines.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 
 class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
@@ -58,11 +59,11 @@ class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
         progressBar.isIndeterminate = true
         txtResult.text = "Loading..."
         // Release main thread and wait until text is loaded
-        val loadedText = loadTextSus()
+        val loadedText = loadTextSus().await()
         // Loaded successfully, come back in UI thread and show result
         txtResult.text = loadedText + " (to be processed)"
         // Have to continue processing in background
-        txtResult.text = processTextSus(loadedText)
+        txtResult.text = processTextSus(loadedText).await()
         progressBar.visibility = View.INVISIBLE
         btnAwaitNormal.isEnabled = true
     }
@@ -76,7 +77,7 @@ class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
         txtResult.text = loadTextWithProgress {
             progressBar.progress = it
             progressBar.max = 100
-        }
+        }.await()
 
         progressBar.visibility = View.INVISIBLE
         btnAwaitWithProgress.isEnabled = true
@@ -119,24 +120,24 @@ class CoroutineMainActivity : AppCompatActivity(), KxOrangeView {
     }
 
     @DebugLog
-    suspend private fun loadTextSus(): String {
-        delay(1000)
-        return "Loaded Text"
+    suspend private fun loadTextSus() = async {
+        longRunningTask(1000)
+        "Loaded Text"
     }
 
     @DebugLog
-    suspend private fun processTextSus(input: String): String {
-        delay(1000)
-        return "Processed $input"
+    suspend private fun processTextSus(input: String) = async {
+        longRunningTask(1000)
+        "Processed $input"
     }
 
     @DebugLog
-    suspend private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>): String {
+    suspend private fun loadTextWithProgress(handleProgress: ProgressHandler<Int>) = async {
         for (i in 1..10) {
             handleProgress(i * 100 / 10) // in %
-            delay(300)
+            longRunningTask(300)
         }
-        return "Loaded Text"
+        "Loaded Text"
     }
 
     @DebugLog

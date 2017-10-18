@@ -1,6 +1,7 @@
 package co.metalab.coroutinesample
 
 import android.util.Log
+import co.metalab.util.longRunningTask
 import kotlinx.coroutines.experimental.async
 
 class KxOrangePresenter(val orangeView: KxOrangeView) {
@@ -13,7 +14,7 @@ class KxOrangePresenter(val orangeView: KxOrangeView) {
     }
 
     private fun orangeTask() = async {
-        Thread.sleep(3000)
+        longRunningTask(3000)
         Log.d("OrangePresenter", "Orange task is done")
         "Orange task is done"
     }
