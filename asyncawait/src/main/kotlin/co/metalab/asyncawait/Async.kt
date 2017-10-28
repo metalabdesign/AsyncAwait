@@ -19,6 +19,20 @@ private val executors = WeakHashMap<Any, ExecutorService>()
 
 private val coroutines = WeakHashMap<Any, ArrayList<WeakReference<AsyncController>>>()
 
+private val allCoroutines: Collection<WeakReference<AsyncController>>
+   get() = coroutines.flatMap { it.value }
+
+var onRunningCoroutine: (() -> Unit)? = null
+    set(value) {
+        if (allCoroutines.isNotEmpty()) { value?.invoke() }
+        field = value
+    }
+var onIdleCoroutines: (() -> Unit)? = null
+   set(value) {
+       if (allCoroutines.isEmpty()) { value?.invoke() }
+       field = value
+   }
+
 /**
  * Run asynchronous computations based on [c] coroutine parameter.
  * Must be used in UI thread.
@@ -132,6 +146,7 @@ class AsyncController(private val target: Any) {
     * in background thread
     */
    suspend fun <V> await(f: () -> V): V {
+      onRunningCoroutine?.invoke()
       keepAwaitCallerStackTrace()
       return suspendCoroutine {
          currentTask = AwaitTask(f, this, it)
@@ -156,6 +171,7 @@ class AsyncController(private val target: Any) {
        f: (ProgressHandler<P>) -> V,
        onProgress: ProgressHandler<P>
    ): V {
+      onRunningCoroutine?.invoke()
       keepAwaitCallerStackTrace()
       return suspendCoroutine {
          currentTask = AwaitWithProgressTask(f, onProgress, this, it)
@@ -204,6 +220,7 @@ class AsyncController(private val target: Any) {
    internal fun applyFinallyBlock() {
       if (isLastCoroutineResumeExecuted()) {
          finallyHandler?.invoke()
+         onIdleCoroutines?.invoke()
       }
    }
 

@@ -6,6 +6,9 @@ apply plugin: 'com.jakewharton.hugo'
 buildscript {
     repositories {
         jcenter()
+        maven{
+            url "https://maven.google.com"
+        }
     }
     dependencies {
         classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
@@ -22,6 +25,7 @@ android {
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
         release {
@@ -31,6 +35,7 @@ android {
     }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+        androidTest.java.srcDirs += "src/androidTest/kotlin"
     }
 }
 
@@ -45,6 +50,16 @@ dependencies {
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
+
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
+    androidTestCompile('com.android.support.test.espresso:espresso-contrib:2.2.2') {
+        exclude group: 'com.android.support'
+    }
+    androidTestCompile 'com.android.support.test.espresso:espresso-intents:2.2.2'
+}
+
+configurations.all {
+    resolutionStrategy.force 'com.android.support:support-annotations:24.2.1'
 }
 
 repositories {
