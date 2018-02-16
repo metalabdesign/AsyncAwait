@@ -62,7 +62,7 @@ val loadedText = awaitWithProgress(::loadTextWithProgress) {
          progressBar.max = 100
       }
 ```
-A data loading function (like the `loadTextWithProgress` above) should has a functional parameter of type `(P) -> Unit` which can be called in order to push progress value. For example, it could be like:
+A data loading function (like the `loadTextWithProgress` above) should have a functional parameter of type `(P) -> Unit` which can be called in order to push progress value. For example, it could be like:
 ```Kotlin
 private fun loadTextWithProgress(handleProgress: (Int) -> Unit): String {
    for (i in 1..10) {
